@@ -1,0 +1,33 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+.venv*/
+venv/
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+artifacts/
+figures/
+*.png
+*.pdf
+*.svg
+
+# Local/private migration workspaces and generated release checks.
+README_internal.md
+Spherical-Array-Opensource-Pythonic/
+_nonopensource_extras_bundle/
+_rafaely_plot_bundle/
+
+# MATLAB reference material (out-of-tree parity source, includes a
+# copyrighted Rafaely textbook PDF — must not be redistributed).
+src/
+
+# Local editor / assistant settings — not for the upstream repo.
+.claude/
+.cursor/
+.idea/
+.vscode/

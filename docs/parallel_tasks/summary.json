@@ -1,0 +1,20 @@
+{
+  "adaptive_beamforming": 6,
+  "array_analysis": 3,
+  "diffuseness_and_coherence": 8,
+  "doa_estimation": 5,
+  "encoding_and_equalization": 7,
+  "fixed_beamforming_weights": 14,
+  "misc": 4,
+  "numerical_utilities": 2,
+  "plotting_helpers": 3,
+  "rafaely_ch1": 9,
+  "rafaely_ch2": 6,
+  "rafaely_ch3": 5,
+  "rafaely_ch4": 4,
+  "rafaely_ch5": 3,
+  "rafaely_ch6": 8,
+  "rafaely_ch7": 4,
+  "rafaely_math": 19,
+  "rafaely_plot": 5
+}
