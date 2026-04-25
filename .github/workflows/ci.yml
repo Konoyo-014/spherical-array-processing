@@ -45,9 +45,18 @@ jobs:
         run: python -m pytest -q --tb=short
 
       - name: Verify examples run
+        # ``scripts/run_rafaely_ch5_beamforming_example.py`` does
+        # ``from scripts.run_rafaely_missing_fig import run_named``,
+        # which requires the repo root to be on ``sys.path`` so that
+        # ``scripts/`` is importable as a package.  ``python <file>``
+        # adds the script's own directory but not the repo root, so
+        # set ``PYTHONPATH`` explicitly here.
+        env:
+          MPLBACKEND: Agg
+          PYTHONPATH: .
         run: |
-          MPLBACKEND=Agg python scripts/run_rafaely_ch1_spherical_grid.py
-          MPLBACKEND=Agg python scripts/run_rafaely_ch5_beamforming_example.py
+          python scripts/run_rafaely_ch1_spherical_grid.py
+          python scripts/run_rafaely_ch5_beamforming_example.py
 
   package:
     runs-on: ubuntu-latest
