@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy.typing import ArrayLike
 
 from ...array.sampling import equiangle_sampling as equiangle_grid
@@ -9,7 +8,34 @@ from ...coords import sph_to_cart
 from .math import c2s, s2c, sh2
 
 
+def _plt():
+    """Lazily import :mod:`matplotlib.pyplot`.
+
+    The repro / rafaely plotting helpers are part of the developer-only
+    layer and do not belong on the wheel's hot path; importing them
+    eagerly at module load forced the optional ``matplotlib`` dependency
+    into every test environment that touches the repro layer (e.g.
+    ``import spherical_array_processing.repro.politis``), which broke
+    collection of unrelated tests in clean ``.[dev]`` /
+    ``CI-without-[plotting]`` environments.  Deferring the import to
+    call time keeps the module importable without ``matplotlib`` and
+    raises a clear, actionable error only when a plot function is
+    actually invoked.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:  # pragma: no cover — exercised only without mpl
+        raise ImportError(
+            "matplotlib is required for spherical_array_processing.repro.rafaely "
+            "plot functions; install with "
+            "`pip install 'spherical-array-processing[plotting]'` "
+            "or `pip install matplotlib`."
+        ) from exc
+    return plt
+
+
 def plot_balloon(fnm: ArrayLike, viewangle: tuple[float, float] | None = None, transparency: float | None = None):
+    plt = _plt()
     fnm = np.asarray(fnm, dtype=np.complex128).reshape(-1)
     if transparency is None:
         transparency = 0.01
@@ -45,6 +71,7 @@ def plot_balloon(fnm: ArrayLike, viewangle: tuple[float, float] | None = None, t
 
 
 def plot_sphere(fnm: ArrayLike):
+    plt = _plt()
     fnm = np.asarray(fnm, dtype=np.complex128).reshape(-1)
     N = int(round(np.sqrt(fnm.size) - 1))
     grid = equiangle_grid(max(N, 8))
@@ -63,6 +90,7 @@ def plot_sphere(fnm: ArrayLike):
 
 
 def plot_contour(fnm: ArrayLike, normalization: int | bool = 0, absolute: int | bool = 1):
+    plt = _plt()
     fnm = np.asarray(fnm, dtype=np.complex128).reshape(-1)
     N = int(round(np.sqrt(fnm.size) - 1))
     Np = 29
@@ -94,6 +122,7 @@ def plot_contour(fnm: ArrayLike, normalization: int | bool = 0, absolute: int | 
 
 
 def plot_sampling(theta: ArrayLike, phi: ArrayLike):
+    plt = _plt()
     th = np.asarray(theta, dtype=float).reshape(-1)
     ph = np.asarray(phi, dtype=float).reshape(-1)
     x, y, z = s2c(th, ph, np.ones_like(th))
@@ -121,6 +150,7 @@ def plot_sampling(theta: ArrayLike, phi: ArrayLike):
 
 
 def plot_aliasing(E: ArrayLike):
+    plt = _plt()
     E = np.asarray(E, dtype=float)
     E = np.abs(E)
     E[E < 1e-10] = 0.0

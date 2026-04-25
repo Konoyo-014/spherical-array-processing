@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import importlib
 
-import matplotlib
+import pytest
 
+# Every test in this file imports a Rafaely chapter plotting script;
+# skip the whole module cleanly when the optional ``[plotting]`` extra
+# is not installed.
+matplotlib = pytest.importorskip("matplotlib")
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # noqa: E402 — imported after importorskip
 
 
 RUN_MODULES = [

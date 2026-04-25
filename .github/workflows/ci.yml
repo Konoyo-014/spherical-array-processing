@@ -34,7 +34,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install -e ".[dev]"
+          # `.[plotting]` is needed because parts of the developer-only
+          # `repro` / `regression` reproduction layers and the rafaely
+          # chapter scripts call into matplotlib.  End users do not need
+          # this extra (the runtime wheel works without matplotlib);
+          # only the full test / regression run does.
+          python -m pip install -e ".[dev,plotting]"
 
       - name: Run tests
         run: python -m pytest -q --tb=short
@@ -57,7 +62,12 @@ jobs:
       - name: Build wheel and source distribution
         run: |
           python -m pip install -U pip
-          python -m pip install -e ".[dev]"
+          # `.[plotting]` is needed because parts of the developer-only
+          # `repro` / `regression` reproduction layers and the rafaely
+          # chapter scripts call into matplotlib.  End users do not need
+          # this extra (the runtime wheel works without matplotlib);
+          # only the full test / regression run does.
+          python -m pip install -e ".[dev,plotting]"
           python -m build
 
       - name: Verify source distribution test subset
@@ -65,5 +75,5 @@ jobs:
           tmpdir="$(mktemp -d)"
           tar -xzf dist/spherical_array_processing-*.tar.gz -C "$tmpdir"
           cd "$tmpdir"/spherical_array_processing-*
-          python -m pip install ".[dev]"
+          python -m pip install ".[dev,plotting]"
           python -m pytest -q --tb=short

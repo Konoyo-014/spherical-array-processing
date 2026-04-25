@@ -82,11 +82,23 @@ class TestSimulation:
 # ---------------------------------------------------------------------------
 # 3.  Plotting module (non-visual smoke tests)
 # ---------------------------------------------------------------------------
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+# Plotting is an optional extra; only ``TestPlotting`` needs
+# ``matplotlib``, and a missing ``matplotlib`` must NOT skip the other
+# nine test classes in this file.  Use a try/except + class-level
+# ``pytestmark`` so the rest of the suite stays exercised in clean
+# ``.[dev]`` / CI-without-``[plotting]`` environments.
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    _HAS_MATPLOTLIB = True
+except ImportError:  # pragma: no cover — exercised only in minimal envs
+    matplotlib = None  # type: ignore[assignment]
+    plt = None  # type: ignore[assignment]
+    _HAS_MATPLOTLIB = False
 
 
+@pytest.mark.skipif(not _HAS_MATPLOTLIB, reason="matplotlib (optional [plotting] extra) not installed")
 class TestPlotting:
     def test_plot_mic_array_runs(self):
         from spherical_array_processing.plotting import plot_mic_array

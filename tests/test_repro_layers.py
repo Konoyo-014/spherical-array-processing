@@ -1,8 +1,20 @@
 import numpy as np
-import matplotlib
+import pytest
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+# Plotting is an optional extra.  Most tests in this file do NOT need
+# ``matplotlib``; only the axisym-pattern helper test does.  Use a
+# try/except + per-test skip rather than a module-level
+# ``pytest.importorskip`` so the rest of the suite stays exercised in
+# clean ``.[dev]`` / CI-without-``[plotting]`` environments.
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    _HAS_MATPLOTLIB = True
+except ImportError:  # pragma: no cover — exercised only in minimal envs
+    matplotlib = None  # type: ignore[assignment]
+    plt = None  # type: ignore[assignment]
+    _HAS_MATPLOTLIB = False
 
 from spherical_array_processing.repro.politis import (
     arraySHTfiltersTheory_radInverse,
@@ -250,6 +262,7 @@ def test_politis_more_weight_and_eval_helpers():
     assert wng.shape == (n_bins, 1)
 
 
+@pytest.mark.skipif(not _HAS_MATPLOTLIB, reason="matplotlib (optional [plotting] extra) not installed")
 def test_politis_poly_axisym_helpers():
     tc = returnChebyPolyCoeffs(3)
     lc = returnLegePolyCoeffs(3)

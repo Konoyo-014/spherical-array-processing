@@ -1,8 +1,13 @@
-import matplotlib
+import pytest
 
+# Every test in this file runs a Rafaely chapter plotting script; if
+# the optional ``[plotting]`` extra is not installed (clean ``.[dev]``
+# / CI-without-``[plotting]`` environments) the whole module skips
+# cleanly instead of breaking collection.
+matplotlib = pytest.importorskip("matplotlib")
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.pyplot as plt  # noqa: E402 — imported after importorskip
+import numpy as np  # noqa: E402
 
 from scripts.run_rafaely_ch1_spherical_grid import main as run_ch1_grid
 from scripts.run_rafaely_ch1_xyz_coordinates import main as run_ch1_xyz
