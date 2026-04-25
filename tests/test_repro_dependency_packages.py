@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from spherical_array_processing.repro import array_response_simulator as ars
 from spherical_array_processing.repro import sht
+from spherical_array_processing.repro.sht.functions import _FLIEGE_MAT
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +46,14 @@ def test_sht_smoke_roundtrip_and_geometry_helpers():
     assert grid.shape == (3, 4)
     assert np.isclose(np.sum(w), 4 * np.pi, atol=5e-2)
 
+    if not _FLIEGE_MAT.exists():
+        pytest.skip(
+            "Fliege/Maier MATLAB nodes file is part of the out-of-tree "
+            "MATLAB reference material (see ``src/Spherical-Harmonic-Transform/``) "
+            "and is intentionally not shipped in the wheel/sdist; skip the "
+            "Fliege-specific assertions when running outside the developer "
+            "checkout."
+        )
     vecs, dirs_f, weights = sht.getFliegeNodes(2)
     assert vecs.shape[1] == 3
     assert dirs_f.shape[1] == 2

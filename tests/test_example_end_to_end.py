@@ -1,26 +1,31 @@
-"""Smoke + correctness test for the end-to-end Eigenmike→MagLS example."""
+"""Smoke + correctness test for the end-to-end Eigenmike→MagLS example.
+
+Since 0.4.0b15 the example implementation lives inside the wheel as
+``spherical_array_processing.examples.binaural_em32_to_ears`` (see the
+A5 install-state-examples work).  The repo-side
+``examples/binaural_em32_to_ears.py`` is now a thin shim that re-exports
+from there, but it is **pruned from the sdist**, so this test must
+import the package-side module to remain runnable both in repo
+checkouts and in sdist-only test runs (e.g. the GitHub Actions
+``package`` job).
+"""
 
 from __future__ import annotations
-
-import importlib
-import sys
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 
-EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "examples"
-
-
 @pytest.fixture(scope="module")
 def example_module():
-    """Import ``examples/binaural_em32_to_ears.py`` as a module."""
-    sys.path.insert(0, str(EXAMPLES_DIR))
-    try:
-        module = importlib.import_module("binaural_em32_to_ears")
-    finally:
-        sys.path.pop(0)
+    """Import the in-package binaural example module.
+
+    Equivalent to what end users get after ``pip install`` — i.e. via
+    ``from spherical_array_processing.examples import binaural_em32_to_ears``.
+    """
+    from spherical_array_processing.examples import (
+        binaural_em32_to_ears as module,
+    )
     return module
 
 
