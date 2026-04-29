@@ -18,9 +18,17 @@ figures/
 
 # Local/private migration workspaces and generated release checks.
 README_internal.md
+CODEX_*.md
 Spherical-Array-Opensource-Pythonic/
 _nonopensource_extras_bundle/
 _rafaely_plot_bundle/
+docs/CROSS_REFERENCE_AUDIT.md
+docs/IMPLEMENTATION_STATUS.md
+docs/PARALLEL_MIGRATION_WORKFLOW.md
+docs/PROGRESS_DASHBOARD.md
+docs/RELEASE_CHECKLIST.md
+docs/parallel_tasks/
+docs/source_inventory.json
 
 # MATLAB reference material (out-of-tree parity source, includes a
 # copyrighted Rafaely textbook PDF — must not be redistributed).

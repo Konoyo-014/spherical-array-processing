@@ -206,7 +206,7 @@ class TestApplyDecoder:
 
 
 # --------------------------------------------------------------------------- #
-# Edge cases surfaced by codex review (b2)
+# Edge cases surfaced by release validation.
 # --------------------------------------------------------------------------- #
 
 
@@ -476,7 +476,7 @@ class TestDualBandDecoder:
 class TestRadialTypoValidation:
     def test_sph_modal_coeffs_rejects_typo(self):
         """Unknown ``array_type`` must raise instead of silently falling
-        back to rigid-sphere behaviour (codex b2 review finding)."""
+        back to rigid-sphere behaviour."""
         from spherical_array_processing.acoustics import sph_modal_coeffs
 
         with pytest.raises(ValueError, match="array_type"):

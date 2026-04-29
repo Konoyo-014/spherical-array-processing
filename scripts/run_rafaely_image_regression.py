@@ -219,7 +219,7 @@ def _discover_matlab_scripts(chapters: list[str]) -> dict[str, list[Path]]:
     out: dict[str, list[Path]] = {}
     for ch in chapters:
         src = ROOT / "src" / "Rafaely" / "matlab" / "fig" / ch
-        out[ch] = sorted(p for p in src.glob("*.m") if not p.name.startswith("codex_reg_"))
+        out[ch] = sorted(p for p in src.glob("*.m") if not p.name.startswith("sap_reg_"))
     return out
 
 
@@ -306,7 +306,7 @@ def _run_matlab_script_and_save(matlab_script: Path, outdir: Path, base_name: st
     outdir.mkdir(parents=True, exist_ok=True)
     cwd = matlab_script.parent
     wrapper_body = _matlab_wrapper_contents(matlab_script.name, outdir, base_name)
-    with tempfile.NamedTemporaryFile("w", suffix=".m", prefix="codex_reg_", dir=cwd, delete=False) as tf:
+    with tempfile.NamedTemporaryFile("w", suffix=".m", prefix="sap_reg_", dir=cwd, delete=False) as tf:
         tf.write(wrapper_body)
         wrapper_path = Path(tf.name)
     try:

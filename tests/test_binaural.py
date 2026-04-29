@@ -204,7 +204,7 @@ class TestMagls:
         assert_allclose(rebuilt, delays, atol=1e-10)
 
     def test_phase_continuation_actually_changes_hf_result(self, setup):
-        """Regression test: codex b2 review found the
+        """Regression test for a release-validation finding: the
         ``phase_continuation`` option was silently a no-op because the
         seeded phase was overwritten inside the alternating loop before
         the first LS solve.  This test asserts the two branches now

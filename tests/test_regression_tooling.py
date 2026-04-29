@@ -47,7 +47,7 @@ def test_probe_matlab_cli_detects_ok(monkeypatch):
     cp = subprocess.CompletedProcess(
         args=["matlab"],
         returncode=0,
-        stdout="CODEX_MATLAB_PROBE_OK\n",
+        stdout="SAP_MATLAB_PROBE_OK\n",
         stderr="",
     )
     monkeypatch.setattr(matlab_mod.subprocess, "run", lambda *a, **k: cp)
@@ -81,7 +81,7 @@ def test_regression_script_discovers_and_filters_temp_wrappers(tmp_path, monkeyp
     ch1 = fake_root / "src" / "Rafaely" / "matlab" / "fig" / "ch1"
     ch1.mkdir(parents=True)
     (ch1 / "fig_Pn.m").write_text("% test", encoding="utf-8")
-    (ch1 / "codex_reg_tmp.m").write_text("% temp", encoding="utf-8")
+    (ch1 / "sap_reg_tmp.m").write_text("% temp", encoding="utf-8")
     monkeypatch.setattr(mod, "ROOT", fake_root)
 
     discovered = mod._discover_matlab_scripts(["ch1"])

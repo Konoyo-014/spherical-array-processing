@@ -5,7 +5,7 @@ A self-contained Python toolkit for spherical microphone array signal processing
 This repository is organised as an open-source Python package plus a
 repository-only reproduction workbench for MATLAB parity checks.  The stable
 installable package lives under `spherical_array_processing/`.  The
-`scripts/`, `examples/`, `docs/`, and `src/` directories are development and
+`scripts/`, `examples/`, and `src/` directories are development and
 reproduction assets used by the repository test suite; they are intentionally
 not part of the runtime wheel.
 
@@ -157,7 +157,7 @@ pytest tests/ -q
 The source distribution published to PyPI contains a smaller test subset that
 does not depend on repository-only MATLAB reference sources or example scripts.
 Use the full repository checkout when validating MATLAB parity, image
-regression, or migration tooling.
+regression, or repository-only developer tooling.
 
 ## Running the bundled examples (after `pip install`)
 
@@ -197,7 +197,7 @@ environment.  The CI workflow runs the full repository suite on supported
 Python versions and separately checks that the source distribution can run its
 packaged test subset.
 
-An optional external numeric audit is available for cross-checking core
+An optional external numeric cross-check is available for validating core
 mathematical contracts against independent open-source packages:
 
 ```bash

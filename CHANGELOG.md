@@ -4,13 +4,10 @@ All notable changes to `spherical-array-processing` are documented here.
 
 ## [0.4.0b15] - 2026-04-24
 
-Fifteenth beta — clears the five remaining items from the
-`CODEX_SCORECARD_B14.md` 9.1 → 9.5+ list, then applies the two
-non-blocking follow-up items from the fresh `CODEX_SCORECARD_B15.md`
-rescore (9.6/10) to close the residual API-symmetry gap.  Each
-change was codex-reviewed individually before moving on; all items
-reached **TAG** verdict.  Full test suite: **592 / 592** (with a
-built wheel in `dist/`).
+Fifteenth beta — closes the remaining API-symmetry, packaging-boundary,
+and example-installation follow-up items from the previous beta cycle.
+The release was validated with the full test suite: **592 / 592** (with
+a built wheel in `dist/`).
 
 ### Changed
 
@@ -103,10 +100,9 @@ built wheel in `dist/`).
   `tests/test_directional_array_plumbing.py`.
 
 Fourteenth beta — third-tier polish around API boundaries and
-representation fidelity.  Three focused changes address the
-non-blocking items codex left open at the end of the b11 full
-audit.  Each change was codex-reviewed individually before moving
-on.  Full test suite: **557 / 557**.
+representation fidelity.  Three focused changes address residual
+release-readiness items from the earlier beta cycle.  Full test suite:
+**557 / 557**.
 
 ### Changed
 
@@ -185,7 +181,7 @@ that were still visible in the production modules.  Full test suite:
   wave yields ``ψ ≈ 0`` exactly (previously a stray SN3D-vs-orthonormal
   scale error left a ``0.134`` residual).
 
-### Fixed (codex b13 review)
+### Fixed (release validation)
 
 - `dirac.dirac_analysis` internal canonicalisation direction
   corrected.  An earlier b13 draft converted input to SN3D before
@@ -291,7 +287,7 @@ and a **saner default `seed`** for `fdn_sh_tail`.  Full test suite:
   statistically independent diffuse tails on each render.
 - Version bumped to `0.4.0b11`.
 
-### Fixed (codex b11 review)
+### Fixed (release validation)
 
 - ``uhj_encode(hilbert_method="fir")`` now returns an output that
   strictly matches the input length for **every** input size.  The
@@ -347,7 +343,7 @@ suite: **510 / 510**.
 - `__init__.py` docstring notes the new `save_sofa` / `fdn_*`
   helpers.
 
-### Fixed (codex b10 review)
+### Fixed (release validation)
 
 - `hrtf.save_sofa` now writes the SimpleFreeFieldHRIR-mandatory
   global attributes (``Version="2.1"``, ``AuthorContact``,
@@ -391,7 +387,7 @@ source-activity / diffuseness research.  Full test suite: **487 /
 - Version bumped to `0.4.0b9`.
 - `__init__.py` docstring notes the new UHJ and intensity helpers.
 
-### Fixed (codex b9 review)
+### Fixed (release validation)
 
 - `ambi.uhj_encode` now applies the classical ``(S ± D)/2`` factor of
   ``1/2`` in the UHJ-2 ``L_T / R_T`` equations.  The previous
@@ -449,7 +445,7 @@ reverb.  Full test suite: **459 / 459**.
   ``shoebox_rir_banded`` additions and the new ``encode_plane_wave``
   entry in `ambi`.
 
-### Fixed (codex b8 review)
+### Fixed (release validation)
 
 - `room.banded._fir_from_bands` now realises **piecewise-constant**
   per-band gains as intended.  The previous construction passed only
@@ -503,7 +499,7 @@ rendering.  Full test suite: **428 / 428**.
 - `__init__.py` docstring notes the new `ambi` submodule additions
   (WAV I/O, NFC-HOA) and the convolution-reverb helpers under `room`.
 
-### Fixed (codex b7 review)
+### Fixed (release validation)
 
 - `room.convolve_mono_to_ambi` now restores the user's axis layout
   correctly for any ``axis`` value, not just ``axis=-1``.  The
@@ -571,7 +567,7 @@ testbeds without measured data.  Full test suite: **392 / 392**.
 - `__init__.py` registers the new `ambi` lazy submodule and updates
   the `binaural` / `hrtf` docstrings.
 
-### Fixed (codex b6 review)
+### Fixed (release validation)
 
 - `hrtf.rigid_sphere_hrtf` dropped a duplicated ``4π`` factor in the
   modal-series amplitude.  ``bn_matrix(sphere="rigid")`` already
@@ -676,7 +672,7 @@ layout-coverage diagnostic).  Full test suite: **332 / 332**.
 - `pyproject.toml` declares the optional ``[hrtf]`` dependency group
   (``h5py>=3.6``).
 
-### Fixed (codex b4 review)
+### Fixed (release validation)
 
 - `dirac_render_time_domain` no longer mis-classifies short
   channels-first inputs (e.g. ``(Q=4, T=2)``) as time-major.  The new
@@ -716,9 +712,9 @@ shipped with cross-module regression tests; full suite is at **314 /
   still gets ``L`` real-speaker gains.
 - `vbap_gains(..., imaginary_loudspeakers=)` and
   `allrad_decoder(..., imaginary_loudspeakers=, auto_close_hull=)` —
-  first-class support for non-enclosing layouts, addressing the codex
-  b2 finding that the previous centroid-fallback could produce ~20°
-  angular errors on a pure upper-dome.
+  first-class support for non-enclosing layouts, addressing a
+  release-validation finding that the previous centroid-fallback could
+  produce ~20° angular errors on a pure upper-dome.
 - **`spherical_array_processing.decoding.dual_band_decoder_matrix`** and
   **`apply_dual_band_decoder`** — Daniel-style dual-band ambisonic
   decoding.  ``D_lf`` is the base decoder (SAD / MMD / EPAD / AllRAD);
@@ -756,7 +752,7 @@ shipped with cross-module regression tests; full suite is at **314 /
   default orthonormal SH), but ``ψ`` values are biased away from the
   textbook ``[0, 1]`` range.
 
-### Fixed (codex b3 review)
+### Fixed (release validation)
 
 - `bimagls_binaural_filters` no longer forces `delay_sh_coeffs` to
   ``float`` — complex-basis inputs with off-axis ear positions now

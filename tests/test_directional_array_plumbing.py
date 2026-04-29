@@ -196,9 +196,7 @@ def test_radial_equalizer_rejects_out_of_range_dir_coeff():
 
 
 # ------------------------------------------------------------------ #
-# Acoustics-layer validation symmetry (0.4.0b15 polish — addresses    #
-# the "bottom-layer validation still asymmetric" item in              #
-# CODEX_SCORECARD_B15.md).                                            #
+# Acoustics-layer validation symmetry.                                #
 # ------------------------------------------------------------------ #
 
 
@@ -245,8 +243,7 @@ def test_sph_modal_coeffs_rejects_stray_dir_coeff():
 
 
 # ------------------------------------------------------------------ #
-# ArrayGeometry single-source-of-truth (0.4.0b15 polish — addresses   #
-# the "阵列配置双真相源" item in CODEX_SCORECARD_B15.md).              #
+# ArrayGeometry single-source-of-truth.                               #
 # ------------------------------------------------------------------ #
 
 

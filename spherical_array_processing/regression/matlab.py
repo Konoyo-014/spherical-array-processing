@@ -85,7 +85,7 @@ def probe_matlab_cli(timeout_s: int = 15) -> MatlabProbeResult:
     rt = detect_matlab()
     if rt is None:
         return MatlabProbeResult(status="not_found", message="MATLAB not found")
-    cmd = [rt.executable, "-nojvm", "-nodisplay", "-nosplash", "-r", "disp('CODEX_MATLAB_PROBE_OK');exit"]
+    cmd = [rt.executable, "-nojvm", "-nodisplay", "-nosplash", "-r", "disp('SAP_MATLAB_PROBE_OK');exit"]
     try:
         cp = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=timeout_s)
     except subprocess.TimeoutExpired as e:
@@ -115,7 +115,7 @@ def probe_matlab_cli(timeout_s: int = 15) -> MatlabProbeResult:
             stdout_tail=out[-1000:],
             stderr_tail=err[-1000:],
         )
-    if "codex_matlab_probe_ok" in text and cp.returncode == 0:
+    if "sap_matlab_probe_ok" in text and cp.returncode == 0:
         return MatlabProbeResult(status="ok", message="MATLAB CLI probe succeeded", stdout_tail=out[-1000:], stderr_tail=err[-1000:])
     return MatlabProbeResult(
         status="error",
