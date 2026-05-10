@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spherical-array-processing"
-version = "0.4.0b15"
-description = "Pythonic spherical array processing toolkit — SH transforms, beamforming, DOA, diffuseness"
+version = "0.4.0"
+description = "Pythonic spherical array processing toolkit — SH transforms, Ambisonics, beamforming, DOA"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"

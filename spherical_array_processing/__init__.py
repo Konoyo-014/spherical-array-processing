@@ -102,11 +102,12 @@ from __future__ import annotations
 
 from importlib import import_module
 
-__version__ = "0.4.0b15"
+__version__ = "0.4.0"
 
 from .types import (
     ArrayGeometry,
     FigureReproConfig,
+    FigureStyleConfig,
     SHBasisSpec,
     SHCovariance,
     SHSignalFrame,
@@ -170,6 +171,7 @@ __all__ = [
     # types
     "ArrayGeometry",
     "FigureReproConfig",
+    "FigureStyleConfig",
     "SHBasisSpec",
     "SHCovariance",
     "SHSignalFrame",

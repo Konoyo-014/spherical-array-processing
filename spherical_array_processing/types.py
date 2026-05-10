@@ -202,3 +202,6 @@ class FigureReproConfig:
     colormap: str = "viridis"
     image_ssim_threshold: float = 0.95
     max_rel_curve_error: float = 1e-2
+
+
+FigureStyleConfig = FigureReproConfig

@@ -8,6 +8,8 @@ __all__ = [
     "cart_to_sph",
     "azel_to_az_colat",
     "az_colat_to_azel",
+    "angular_distance",
+    "angular_distance_deg",
     "unit_sph_to_cart",
 ]
 
@@ -178,6 +180,51 @@ def az_colat_to_azel(azimuth: ArrayLike, colatitude: ArrayLike) -> tuple[NDArray
     return az, (np.pi / 2.0) - th
 
 
+def angular_distance(
+    azimuth1: ArrayLike,
+    angle2_1: ArrayLike,
+    azimuth2: ArrayLike,
+    angle2_2: ArrayLike,
+    convention: str = "az_el",
+) -> NDArray[np.float64]:
+    """Great-circle angular distance between unit-sphere directions.
+
+    Uses the haversine formula for numerical stability and accepts the
+    package's two spherical-angle conventions.
+    """
+    az1 = _a(azimuth1)
+    az2 = _a(azimuth2)
+    if convention == "az_el":
+        lat1 = _a(angle2_1)
+        lat2 = _a(angle2_2)
+    elif convention == "az_colat":
+        lat1 = (np.pi / 2.0) - _a(angle2_1)
+        lat2 = (np.pi / 2.0) - _a(angle2_2)
+    else:
+        raise ValueError(f"unsupported convention: {convention}")
+
+    dlat = lat2 - lat1
+    dlon = az2 - az1
+    hav = (
+        np.sin(dlat / 2.0) ** 2
+        + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2.0) ** 2
+    )
+    return 2.0 * np.arcsin(np.sqrt(np.clip(hav, 0.0, 1.0)))
+
+
+def angular_distance_deg(
+    azimuth1: ArrayLike,
+    angle2_1: ArrayLike,
+    azimuth2: ArrayLike,
+    angle2_2: ArrayLike,
+    convention: str = "az_el",
+) -> NDArray[np.float64]:
+    """Great-circle angular distance in degrees."""
+    return np.degrees(
+        angular_distance(azimuth1, angle2_1, azimuth2, angle2_2, convention)
+    )
+
+
 def unit_sph_to_cart(azimuth: ArrayLike, angle2: ArrayLike, convention: str = "az_el") -> NDArray[np.float64]:
     """Convert spherical angles to unit-length Cartesian vectors as an [..., 3] array.
 
@@ -204,4 +251,3 @@ def unit_sph_to_cart(azimuth: ArrayLike, angle2: ArrayLike, convention: str = "a
     """
     x, y, z = sph_to_cart(azimuth, angle2, radius=1.0, convention=convention)
     return np.stack([x, y, z], axis=-1)
-

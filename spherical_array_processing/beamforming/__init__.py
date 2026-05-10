@@ -9,9 +9,11 @@ from .fixed import (
     beam_weights_supercardioid,
     normalize_axisymmetric_weights,
 )
+from .steer import beamform_sh, steer_sh_weights
 
 __all__ = [
     "axisymmetric_pattern",
+    "beamform_sh",
     "beam_weights_butterworth",
     "beam_weights_cardioid",
     "beam_weights_dolph_chebyshev",
@@ -21,4 +23,5 @@ __all__ = [
     "lcmv_weights",
     "mvdr_weights",
     "normalize_axisymmetric_weights",
+    "steer_sh_weights",
 ]

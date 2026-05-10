@@ -454,3 +454,52 @@ def sph_modal_coeffs(
         repeat_per_order=False,
         dir_coeff=dir_coeff,
     )
+
+
+def equalize_modal_coeffs(
+    sh_signals: ArrayLike,
+    bn: ArrayLike,
+    reg_param: float = 1e-4,
+    reg_type: str = "tikhonov",
+) -> NDArray[np.complex128]:
+    """Apply regularized modal equalization to SH-domain array signals.
+
+    ``bn`` may be ACN-expanded with shape ``(F, (N+1)^2)`` or compact
+    per-order with shape ``(F, N+1)``. The SH coefficient axis is the last
+    axis and the frequency axis is the second-to-last axis.
+    """
+    sig = np.asarray(sh_signals, dtype=np.complex128)
+    coeffs = np.asarray(bn, dtype=np.complex128)
+    if sig.ndim < 2:
+        raise ValueError("sh_signals must have at least frequency and coefficient axes")
+    if coeffs.ndim != 2:
+        raise ValueError("bn must be a 2D array with shape (F, C)")
+    if sig.shape[-2] != coeffs.shape[0]:
+        raise ValueError("frequency-axis length mismatch between sh_signals and bn")
+
+    n_coeffs = sig.shape[-1]
+    if coeffs.shape[1] != n_coeffs:
+        n_orders = coeffs.shape[1]
+        if n_orders < 1 or n_coeffs != n_orders * n_orders:
+            raise ValueError("bn channel count must be (N+1) or (N+1)^2")
+        expanded = np.empty((coeffs.shape[0], n_coeffs), dtype=np.complex128)
+        cursor = 0
+        for degree in range(n_orders):
+            count = 2 * degree + 1
+            expanded[:, cursor: cursor + count] = coeffs[:, [degree]]
+            cursor += count
+        coeffs = expanded
+
+    mag = np.abs(coeffs)
+    mag_max = np.maximum(np.max(mag, axis=-1, keepdims=True), 1e-30)
+    if reg_type == "tikhonov":
+        inv = np.conj(coeffs) / (mag**2 + float(reg_param) * mag_max**2)
+    elif reg_type == "softlimit":
+        floor = float(reg_param) * mag_max
+        mag_limited = np.maximum(mag, floor)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            inv = np.where(mag > 0, mag_limited / mag * (1.0 / coeffs), 0.0)
+    else:
+        raise ValueError(f"unsupported reg_type: {reg_type!r}")
+
+    return sig * inv

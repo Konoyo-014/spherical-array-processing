@@ -2,6 +2,28 @@
 
 All notable changes to `spherical-array-processing` are documented here.
 
+## [0.4.0] - 2026-05-10
+
+### Changed
+
+- Consolidated the public project line around `spherical-array-processing` as
+  the canonical package and repository, absorbing the open-source governance,
+  getting-started documentation, and tutorial material that had previously lived
+  in the separate `spharray` line.
+- Promoted the 0.4.0 beta surface to a stable 0.4.0 release version.
+
+### Added
+
+- Added `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CITATION.cff`, and a `docs/`
+  starter documentation set.
+- Added beginner core/tutorial examples from the `spharray` line, adapted to
+  import `spherical_array_processing`.
+- Added small compatibility conveniences from the `spharray` line:
+  `coords.angular_distance`, `coords.angular_distance_deg`,
+  `array.spatial_aliasing_frequency`, `array.max_sh_order`,
+  `acoustics.equalize_modal_coeffs`, `beamforming.steer_sh_weights`,
+  `beamforming.beamform_sh`, and DOA covariance helpers.
+
 ## [0.4.0b15] - 2026-04-24
 
 Fifteenth beta — closes the remaining API-symmetry, packaging-boundary,

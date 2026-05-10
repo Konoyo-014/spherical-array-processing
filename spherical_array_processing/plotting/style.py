@@ -33,3 +33,5 @@ def figure_repro_context(config: FigureReproConfig | None = None):
     finally:
         mpl.rcParams.update(old)
 
+
+figure_style_context = figure_repro_context

@@ -161,7 +161,7 @@ regression, or repository-only developer tooling.
 
 ## Running the bundled examples (after `pip install`)
 
-Since 0.4.0b15, a small set of self-contained, stable-API-only demos ships
+Since 0.4.0, a small set of self-contained, stable-API-only demos ships
 inside the wheel as a regular sub-package at
 ``spherical_array_processing.examples``.  Wheel users can therefore run them
 directly without cloning the repository:

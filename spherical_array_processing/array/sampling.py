@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from ..types import SphericalGrid
@@ -125,3 +127,33 @@ def gauss_legendre_sampling(order: int) -> SphericalGrid:
 # Backward-compatible alias.
 equiangle_sampling = gauss_legendre_sampling
 
+
+def spatial_aliasing_frequency(
+    array_radius_m: float,
+    max_order: int,
+    c: float = 343.0,
+) -> float:
+    """Estimate the spatial-aliasing frequency for a spherical array.
+
+    Uses the usual ``kR <= N`` rule, giving
+    ``f_alias = N c / (2 pi R)``.
+    """
+    if float(array_radius_m) <= 0:
+        raise ValueError("array_radius_m must be positive")
+    if int(max_order) < 0:
+        raise ValueError("max_order must be non-negative")
+    return float(int(max_order) * float(c) / (2.0 * math.pi * float(array_radius_m)))
+
+
+def max_sh_order(
+    array_radius_m: float,
+    freq_hz_max: float,
+    c: float = 343.0,
+) -> int:
+    """Estimate the largest usable SH order at a frequency limit."""
+    if float(array_radius_m) <= 0:
+        raise ValueError("array_radius_m must be positive")
+    if float(freq_hz_max) <= 0:
+        return 0
+    kr_max = 2.0 * math.pi * float(freq_hz_max) * float(array_radius_m) / float(c)
+    return max(0, int(math.floor(kr_max)))

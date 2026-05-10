@@ -36,6 +36,12 @@ def figure_repro_context(*args, **kwargs):
     return _impl(*args, **kwargs)
 
 
+def figure_style_context(*args, **kwargs):
+    _require_matplotlib()
+    from .style import figure_style_context as _impl
+    return _impl(*args, **kwargs)
+
+
 def plot_directional_map_from_grid(*args, **kwargs):
     _require_matplotlib()
     from .politis_helpers import (
@@ -53,6 +59,7 @@ def plot_mic_array(*args, **kwargs):
 __all__ = [
     "apply_matlab_like_style",
     "figure_repro_context",
+    "figure_style_context",
     "plot_directional_map_from_grid",
     "plot_mic_array",
 ]

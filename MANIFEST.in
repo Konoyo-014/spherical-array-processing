@@ -2,10 +2,17 @@ include LICENSE
 include README.md
 include CHANGELOG.md
 include CONTRIBUTING.md
+include CITATION.cff
+include CODE_OF_CONDUCT.md
+include SECURITY.md
 include THIRD_PARTY_NOTICES.md
 include pyproject.toml
 
 recursive-include spherical_array_processing *.py py.typed
+recursive-include docs *.md
+include examples/README.md
+recursive-include examples/core *.py
+recursive-include examples/tutorials *.py
 prune tests
 include tests/test_beamforming_doa.py
 include tests/test_binaural.py
@@ -44,6 +51,7 @@ include tests/test_room_metrics.py
 include tests/test_room_reverb.py
 include tests/test_rotate_ambi_over_time.py
 include tests/test_sh.py
+include tests/test_spharray_merge_compat.py
 include tests/test_stft.py
 
 prune .claude
@@ -55,8 +63,7 @@ prune _rafaely_plot_bundle
 prune artifacts
 prune build
 prune dist
-prune docs
-prune examples
+prune examples/rafaely
 prune scripts
 prune src
 

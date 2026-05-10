@@ -9,6 +9,8 @@ from .sampling import (
     fibonacci_grid,
     gauss_legendre_sampling,
     get_tdesign_fallback,
+    max_sh_order,
+    spatial_aliasing_frequency,
 )
 from .simulation import (
     simulate_plane_wave_array_response,
@@ -23,8 +25,9 @@ __all__ = [
     "fibonacci_grid",
     "gauss_legendre_sampling",
     "get_tdesign_fallback",
+    "max_sh_order",
     "simulate_plane_wave_array_response",
     "simulate_sh_array_response",
+    "spatial_aliasing_frequency",
     "tetrahedral_array",
 ]
-
