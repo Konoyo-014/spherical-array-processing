@@ -11,6 +11,7 @@ include pyproject.toml
 recursive-include spherical_array_processing *.py py.typed
 recursive-include docs *.md
 include examples/README.md
+include examples/binaural_em32_to_ears.py
 recursive-include examples/core *.py
 recursive-include examples/tutorials *.py
 prune tests
@@ -21,6 +22,8 @@ include tests/test_covariance.py
 include tests/test_cross_module_consistency.py
 include tests/test_decoding.py
 include tests/test_dirac.py
+include tests/test_diffuseness_intensity_wrapper.py
+include tests/test_directional_array_plumbing.py
 include tests/test_encoding_srp_presets.py
 include tests/test_example_end_to_end.py
 include tests/test_hrtf_sofa.py
@@ -28,6 +31,7 @@ include tests/test_extended_audit.py
 include tests/test_foa_experimental.py
 include tests/test_foa_experimental_dl.py
 include tests/test_import_contract.py
+include tests/test_installed_examples.py
 include tests/test_ambi_encoder.py
 include tests/test_ambi_format.py
 include tests/test_ambi_intensity.py
@@ -50,6 +54,7 @@ include tests/test_room_banded.py
 include tests/test_room_fdn.py
 include tests/test_room_metrics.py
 include tests/test_room_reverb.py
+include tests/test_room_statistical.py
 include tests/test_rotate_ambi_over_time.py
 include tests/test_sh.py
 include tests/test_spharray_merge_compat.py

@@ -11,8 +11,12 @@ import pytest
 soundfile = pytest.importorskip("soundfile")
 
 from spherical_array_processing.ambi import (
+    AmbisonicFrame,
+    AmbisonicSpec,
     convert_ambi_normalization,
+    read_ambix_frame,
     read_ambix_wav,
+    write_ambix_frame,
     write_ambix_wav,
 )
 
@@ -99,6 +103,36 @@ class TestAmbixRoundTrip:
             assert soundfile.info(path).subtype == "DOUBLE"
             raw, _ = soundfile.read(path, always_2d=True, dtype="float64")
         np.testing.assert_allclose(raw, sig.T, atol=0.0, rtol=0.0)
+
+    def test_frame_round_trip_preserves_spec_and_sample_rate(self):
+        rng = np.random.default_rng(11)
+        sig = (rng.standard_normal((4, 1024)) * 0.05).astype(np.float32)
+        frame = AmbisonicFrame(
+            sig,
+            AmbisonicSpec(max_order=1, normalization="sn3d", domain="time"),
+            channel_axis=0,
+            sample_rate_hz=48000.0,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "frame.wav")
+            write_ambix_frame(path, frame)
+            loaded = read_ambix_frame(path)
+        assert loaded.spec.max_order == 1
+        assert loaded.spec.normalization == "sn3d"
+        assert loaded.spec.channel_order == "acn"
+        assert loaded.channel_axis == 0
+        assert loaded.sample_rate_hz == 48000.0
+        np.testing.assert_allclose(loaded.data, sig, atol=1e-6)
+
+    def test_write_frame_requires_sample_rate(self):
+        frame = AmbisonicFrame(
+            np.zeros((4, 32)),
+            AmbisonicSpec(max_order=1),
+            channel_axis=0,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            with pytest.raises(ValueError, match="sample_rate_hz"):
+                write_ambix_frame(os.path.join(tmp, "no_fs.wav"), frame)
 
 
 class TestAmbixValidation:

@@ -97,9 +97,10 @@ python examples/tutorials/02_simulated_doa_pipeline.py
 python examples/tutorials/03_modal_equalization_pipeline.py
 ```
 
-If you prefer notebooks, open `examples/notebooks/getting_started.ipynb`. It
-uses the same path as the first tutorial script, but breaks the workflow into
-small cells.
+Notebook examples are not shipped in the current open-source tree. The runnable
+tutorial surface is the script set above plus the install-safe examples exposed
+as `python -m spherical_array_processing.examples.plane_wave_doa` and
+`python -m spherical_array_processing.examples.binaural_em32_to_ears`.
 
 ## What To Read Next
 

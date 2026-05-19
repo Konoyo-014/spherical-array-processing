@@ -11,6 +11,7 @@ from spherical_array_processing.array import (
     get_tdesign_fallback,
 )
 from spherical_array_processing.decoding import (
+    DecoderConfig,
     allrad_decoder,
     apply_decoder,
     apply_decoder_taper,
@@ -24,8 +25,10 @@ from spherical_array_processing.decoding import (
     layout_itu_5_1,
     layout_itu_7_1_4,
     layout_t_design,
+    load_decoder_config,
     mmd_decoder,
     sad_decoder,
+    save_decoder_config,
     vbap_gains,
 )
 from spherical_array_processing.sh import matrix as sh_matrix
@@ -244,6 +247,30 @@ class TestLayoutPresetsAndDiagnostics:
         spk = fibonacci_grid(10)
         with pytest.raises(ValueError, match="row count"):
             decoder_diagnostics(np.zeros((9, 9)), spk, max_order=2)
+
+    def test_decoder_config_json_round_trip(self, tmp_path):
+        spk = layout_itu_7_1_4()
+        cfg = DecoderConfig(
+            spk,
+            max_order=1,
+            method="sad",
+            taper="max_re",
+            metadata={"name": "itu-7.1.4-smoke"},
+        )
+        d = cfg.matrix()
+        payload = cfg.to_json_dict(include_matrix=True)
+        assert payload["schema"].endswith("decoder-config.v1")
+        assert payload["decoder_matrix"]["shape"] == list(d.shape)
+
+        path = tmp_path / "decoder.json"
+        save_decoder_config(cfg, path)
+        loaded = load_decoder_config(path)
+        assert loaded.max_order == cfg.max_order
+        assert loaded.method == cfg.method
+        assert loaded.taper == cfg.taper
+        assert loaded.metadata["name"] == "itu-7.1.4-smoke"
+        assert_allclose(loaded.loudspeaker_grid.azimuth, spk.azimuth)
+        assert_allclose(loaded.matrix(), d, atol=1e-12)
 
 
 # --------------------------------------------------------------------------- #

@@ -23,6 +23,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from .format import Normalization, convert_ambi_normalization
+from .spec import AmbisonicFrame, AmbisonicSpec
 
 
 AxisLayout = Literal["channels_first", "channels_last"]
@@ -124,6 +125,47 @@ def read_ambix_wav(
     return np.ascontiguousarray(data), float(fs)
 
 
+def read_ambix_frame(
+    path: str | os.PathLike[str],
+    *,
+    max_order: int | None = None,
+    normalization: Normalization = "sn3d",
+    target_normalization: Normalization = "sn3d",
+    dtype: Literal["float32", "float64"] = "float64",
+    metadata: dict | None = None,
+) -> AmbisonicFrame:
+    """Read an AmbiX WAV file into an :class:`AmbisonicFrame`.
+
+    Unlike :func:`read_ambix_wav`, the default target normalisation is
+    ``"sn3d"`` so the frame preserves the usual AmbiX stream
+    convention unless the caller explicitly asks for an internal
+    orthonormal representation.
+    """
+    data, fs = read_ambix_wav(
+        path,
+        max_order=max_order,
+        normalization=normalization,
+        target_normalization=target_normalization,
+        axis="channels_first",
+        dtype=dtype,
+    )
+    order = _infer_max_order(data.shape[0])
+    spec = AmbisonicSpec(
+        max_order=order,
+        basis="real",
+        normalization=target_normalization,
+        channel_order="acn",
+        domain="time",
+    )
+    return AmbisonicFrame(
+        data,
+        spec,
+        channel_axis=0,
+        sample_rate_hz=fs,
+        metadata={} if metadata is None else dict(metadata),
+    )
+
+
 def write_ambix_wav(
     path: str | os.PathLike[str],
     sh_signal: ArrayLike,
@@ -191,4 +233,38 @@ def write_ambix_wav(
     sf.write(str(path), np.asarray(data_tq), int(fs), subtype=subtype)
 
 
-__all__ = ["read_ambix_wav", "write_ambix_wav"]
+def write_ambix_frame(
+    path: str | os.PathLike[str],
+    frame: AmbisonicFrame,
+    *,
+    fs: float | None = None,
+    file_normalization: Normalization = "sn3d",
+    subtype: str = "FLOAT",
+) -> None:
+    """Write a time-domain :class:`AmbisonicFrame` as an AmbiX WAV file."""
+    if frame.spec.domain != "time":
+        raise ValueError("write_ambix_frame requires a time-domain frame")
+    if frame.data.ndim != 2:
+        raise ValueError("write_ambix_frame requires 2-D time-domain data")
+    sample_rate = frame.sample_rate_hz if fs is None else float(fs)
+    if sample_rate is None:
+        raise ValueError("frame.sample_rate_hz is required unless fs is provided")
+    axis = "channels_first" if frame.channel_axis == 0 else "channels_last"
+    write_ambix_wav(
+        path,
+        frame.data,
+        sample_rate,
+        max_order=frame.spec.max_order,
+        source_normalization=frame.spec.normalization,
+        file_normalization=file_normalization,
+        axis=axis,
+        subtype=subtype,
+    )
+
+
+__all__ = [
+    "read_ambix_frame",
+    "read_ambix_wav",
+    "write_ambix_frame",
+    "write_ambix_wav",
+]

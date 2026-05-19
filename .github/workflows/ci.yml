@@ -34,12 +34,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          # `.[plotting]` is needed because parts of the developer-only
-          # `repro` / `regression` reproduction layers and the rafaely
-          # chapter scripts call into matplotlib.  End users do not need
-          # this extra (the runtime wheel works without matplotlib);
-          # only the full test / regression run does.
-          python -m pip install -e ".[dev,plotting]"
+          # The full CI run includes optional public I/O surfaces
+          # (`audio` for AmbiX WAV, `hrtf` for SOFA) plus plotting for
+          # repository reproduction scripts.  End users only need the
+          # extras that match their workflow.
+          python -m pip install -e ".[dev,plotting,audio,hrtf]"
 
       - name: Run tests
         run: python -m pytest -q --tb=short
@@ -71,12 +70,7 @@ jobs:
       - name: Build wheel and source distribution
         run: |
           python -m pip install -U pip
-          # `.[plotting]` is needed because parts of the developer-only
-          # `repro` / `regression` reproduction layers and the rafaely
-          # chapter scripts call into matplotlib.  End users do not need
-          # this extra (the runtime wheel works without matplotlib);
-          # only the full test / regression run does.
-          python -m pip install -e ".[dev,plotting]"
+          python -m pip install -e ".[dev,plotting,audio,hrtf]"
           python -m build
 
       - name: Verify source distribution test subset
@@ -84,5 +78,5 @@ jobs:
           tmpdir="$(mktemp -d)"
           tar -xzf dist/spherical_array_processing-*.tar.gz -C "$tmpdir"
           cd "$tmpdir"/spherical_array_processing-*
-          python -m pip install ".[dev,plotting]"
+          python -m pip install ".[dev,plotting,audio,hrtf]"
           python -m pytest -q --tb=short

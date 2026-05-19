@@ -13,6 +13,16 @@ All notable changes to `spherical-array-processing` are documented here.
 - Added `ambi.channel_count`, `ambi.infer_order`, and
   `ambi.encode_plane_wave_frame` so low-level source encoding can be
   used in a metadata-preserving workflow.
+- Added `ambi.order_channel_slices`, `ambi.order_channel_mask`,
+  `ambi.per_order_energy`, and `ambi.ambisonic_signal_report` for
+  Ambisonic channel-block inspection, per-order energy accounting,
+  active-channel detection, finite-value checks, peak/RMS summaries,
+  and crest-factor reporting.
+- Added explicit `AmbisonicFrame.freq_axis` validation for frequency
+  and STFT-domain frames.
+- Added typed AmbiX frame I/O helpers, `ambi.read_ambix_frame` and
+  `ambi.write_ambix_frame`, alongside the existing raw-array WAV
+  helpers.
 - Added decoder layout helpers: `decoding.layout_from_directions`,
   `decoding.layout_from_directions_deg`, `decoding.layout_t_design`,
   `decoding.layout_itu_5_1`, and `decoding.layout_itu_7_1_4`.
@@ -26,11 +36,23 @@ All notable changes to `spherical-array-processing` are documented here.
 - Added `decoding.decoder_diagnostics`, a machine-readable report for
   decoder rank, conditioning, diffuse-level error, layout coverage, and
   velocity / energy-vector behavior on a probe grid.
+- Added `decoding.DecoderConfig`, `decoding.save_decoder_config`, and
+  `decoding.load_decoder_config` for JSON-serialisable loudspeaker
+  decoder configurations with optional embedded decoder matrices.
 - Added `encoding.measured_array_diagnostics`, which reports steering
   matrix condition numbers, measured-encoder reconstruction residuals,
   white-noise-gain ranges, and maximum filter gain.
+- Added statistical room-acoustics prediction utilities under
+  `room.*` / `acoustics.*`: Sabine, Eyring, Millington-Sette, and
+  Arau-Puchades RT60 estimates; equivalent absorption area; mean
+  absorption; room constant; critical distance; Schroeder frequency;
+  rectangular-room modal frequencies and mode classification; and
+  ISO 9613-1-style atmospheric absorption coefficients in dB/m.
 - Added `docs/v0_5_0_ambisonics_release_plan.md` documenting the 0.5.0
   release boundary and the GitHub/PyPI synchronization requirement.
+- Added `docs/statistical_room_acoustics.md` documenting the boundary
+  between prediction formulas, measured-RIR metrics, and out-of-scope
+  IEC 60268-16 STI/STIPA compliance.
 
 ### Changed
 

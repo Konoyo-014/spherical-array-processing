@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import os
 import warnings
-from typing import Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -18,6 +21,122 @@ from ..types import SHBasisSpec, SphericalGrid
 DecoderMethod = Literal["sad", "mmd", "mad", "mode_matching", "epad", "allrad"]
 BasisKind = Literal["real", "complex"]
 DecoderTaper = Literal["none", "max_re", "in_phase"]
+
+
+def _grid_to_json_dict(grid: SphericalGrid) -> dict[str, Any]:
+    return {
+        "azimuth": np.asarray(grid.azimuth, dtype=float).tolist(),
+        "angle2": np.asarray(grid.angle2, dtype=float).tolist(),
+        "convention": grid.convention,
+        "weights": (
+            None
+            if grid.weights is None
+            else np.asarray(grid.weights, dtype=float).tolist()
+        ),
+    }
+
+
+def _grid_from_json_dict(payload: dict[str, Any]) -> SphericalGrid:
+    return SphericalGrid(
+        azimuth=np.asarray(payload["azimuth"], dtype=float),
+        angle2=np.asarray(payload["angle2"], dtype=float),
+        convention=payload.get("convention", "az_el"),
+        weights=(
+            None
+            if payload.get("weights") is None
+            else np.asarray(payload["weights"], dtype=float)
+        ),
+    )
+
+
+@dataclass(frozen=True)
+class DecoderConfig:
+    """Serializable Ambisonic decoder configuration."""
+
+    loudspeaker_grid: SphericalGrid
+    max_order: int
+    method: DecoderMethod = "allrad"
+    basis: BasisKind = "real"
+    taper: DecoderTaper = "none"
+    rms_preserving: bool = False
+    options: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def matrix(self) -> NDArray[np.floating]:
+        """Construct the decoder matrix described by this config."""
+        d = decoder_matrix(
+            self.loudspeaker_grid,
+            self.max_order,
+            method=self.method,
+            basis=self.basis,
+            **dict(self.options),
+        )
+        return apply_decoder_taper(
+            d,
+            self.max_order,
+            self.taper,
+            rms_preserving=self.rms_preserving,
+        )
+
+    def to_json_dict(self, *, include_matrix: bool = False) -> dict[str, Any]:
+        """Return a JSON-serialisable dictionary."""
+        payload: dict[str, Any] = {
+            "schema": "spherical-array-processing.decoder-config.v1",
+            "max_order": int(self.max_order),
+            "method": self.method,
+            "basis": self.basis,
+            "taper": self.taper,
+            "rms_preserving": bool(self.rms_preserving),
+            "loudspeaker_layout": _grid_to_json_dict(self.loudspeaker_grid),
+            "options": dict(self.options),
+            "metadata": dict(self.metadata),
+        }
+        if include_matrix:
+            matrix = np.asarray(self.matrix())
+            payload["decoder_matrix"] = {
+                "shape": list(matrix.shape),
+                "values": matrix.tolist(),
+            }
+        return payload
+
+    @classmethod
+    def from_json_dict(cls, payload: dict[str, Any]) -> "DecoderConfig":
+        """Create a config from :meth:`to_json_dict` output."""
+        if payload.get("schema") not in (
+            None,
+            "spherical-array-processing.decoder-config.v1",
+        ):
+            raise ValueError(f"unsupported decoder config schema: {payload.get('schema')!r}")
+        return cls(
+            loudspeaker_grid=_grid_from_json_dict(payload["loudspeaker_layout"]),
+            max_order=int(payload["max_order"]),
+            method=payload.get("method", "allrad"),
+            basis=payload.get("basis", "real"),
+            taper=payload.get("taper", "none"),
+            rms_preserving=bool(payload.get("rms_preserving", False)),
+            options=dict(payload.get("options", {})),
+            metadata=dict(payload.get("metadata", {})),
+        )
+
+
+def save_decoder_config(
+    config: DecoderConfig,
+    path: str | os.PathLike[str],
+    *,
+    include_matrix: bool = True,
+    indent: int = 2,
+) -> None:
+    """Write a decoder configuration as JSON."""
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(config.to_json_dict(include_matrix=include_matrix), f, indent=indent)
+        f.write("\n")
+
+
+def load_decoder_config(path: str | os.PathLike[str]) -> DecoderConfig:
+    """Load a decoder configuration JSON file."""
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    return DecoderConfig.from_json_dict(payload)
 
 
 def max_re_sh_weights(max_order: int) -> NDArray[np.float64]:

@@ -23,6 +23,7 @@ resulting matrix to multi-channel / multi-frequency tensors.
 """
 
 from .decoders import (
+    DecoderConfig,
     allrad_decoder,
     apply_decoder,
     apply_decoder_taper,
@@ -40,14 +41,17 @@ from .decoders import (
     layout_itu_5_1,
     layout_itu_7_1_4,
     layout_t_design,
+    load_decoder_config,
     max_re_sh_weights,
     mmd_decoder,
     sad_decoder,
+    save_decoder_config,
     suggest_imaginary_loudspeakers,
     vbap_gains,
 )
 
 __all__ = [
+    "DecoderConfig",
     "allrad_decoder",
     "apply_decoder",
     "apply_decoder_taper",
@@ -65,9 +69,11 @@ __all__ = [
     "layout_itu_5_1",
     "layout_itu_7_1_4",
     "layout_t_design",
+    "load_decoder_config",
     "max_re_sh_weights",
     "mmd_decoder",
     "sad_decoder",
+    "save_decoder_config",
     "suggest_imaginary_loudspeakers",
     "vbap_gains",
 ]

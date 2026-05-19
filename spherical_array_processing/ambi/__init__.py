@@ -29,16 +29,28 @@ from .format import (
     fuma_to_acn,
 )
 from .intensity import doa_from_intensity, intensity_vector
-from .io import read_ambix_wav, write_ambix_wav
+from .io import read_ambix_frame, read_ambix_wav, write_ambix_frame, write_ambix_wav
 from .nfc import nfc_hoa_distance_filter
-from .spec import AmbisonicFrame, AmbisonicSpec, channel_count, infer_order
+from .spec import (
+    AmbisonicFrame,
+    AmbisonicSignalReport,
+    AmbisonicSpec,
+    ambisonic_signal_report,
+    channel_count,
+    infer_order,
+    order_channel_mask,
+    order_channel_slices,
+    per_order_energy,
+)
 from .translation import translate_foa
 from .uhj import uhj_decode, uhj_encode
 
 __all__ = [
     "acn_to_fuma",
     "AmbisonicFrame",
+    "AmbisonicSignalReport",
     "AmbisonicSpec",
+    "ambisonic_signal_report",
     "channel_count",
     "convert_ambi_normalization",
     "doa_from_intensity",
@@ -48,9 +60,14 @@ __all__ = [
     "infer_order",
     "intensity_vector",
     "nfc_hoa_distance_filter",
+    "order_channel_mask",
+    "order_channel_slices",
+    "per_order_energy",
     "read_ambix_wav",
+    "read_ambix_frame",
     "translate_foa",
     "uhj_decode",
     "uhj_encode",
     "write_ambix_wav",
+    "write_ambix_frame",
 ]
