@@ -21,6 +21,7 @@ from numpy.typing import ArrayLike, NDArray
 from ..sh import matrix as sh_matrix
 from ..types import NormalizationKind, SHBasisSpec, SphericalGrid
 from .format import convert_ambi_normalization
+from .spec import AmbisonicFrame, AmbisonicSpec
 
 
 BasisKind = Literal["real", "complex"]
@@ -90,4 +91,37 @@ def encode_plane_wave(
     return out
 
 
-__all__ = ["encode_plane_wave"]
+def encode_plane_wave_frame(
+    mono_signal: ArrayLike,
+    direction: SphericalGrid,
+    *,
+    spec: AmbisonicSpec,
+    sample_rate_hz: float | None = None,
+    metadata: dict | None = None,
+) -> AmbisonicFrame:
+    """Encode one or more mono plane waves and return an AmbisonicFrame.
+
+    This is the container-preserving counterpart to
+    :func:`encode_plane_wave`.  The returned frame stores channels on
+    axis 0, matching the low-level encoder's ``(Q, T)`` output.
+    """
+    data = encode_plane_wave(
+        mono_signal,
+        direction,
+        max_order=spec.max_order,
+        basis=spec.basis,
+        normalization=spec.normalization,
+    )
+    if spec.mixed_order_mask is not None:
+        data = data.copy()
+        data[~spec.mixed_order_mask, ...] = 0
+    return AmbisonicFrame(
+        data,
+        spec.with_domain("time"),
+        channel_axis=0,
+        sample_rate_hz=sample_rate_hz,
+        metadata={} if metadata is None else dict(metadata),
+    )
+
+
+__all__ = ["encode_plane_wave", "encode_plane_wave_frame"]

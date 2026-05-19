@@ -35,6 +35,8 @@ from .._measured_sht_filters import (
     arraySHTfiltersMeas_regLS,
     arraySHTfiltersMeas_regLSHD,
 )
+from ..sh import matrix as sh_matrix
+from ..types import SHBasisSpec, SphericalGrid
 
 
 MeasuredEqualizerMethod = Literal["regLS", "regLSHD"]
@@ -198,7 +200,97 @@ def apply_measured_equalizer(
     return np.transpose(out, inverse)
 
 
+def measured_array_diagnostics(
+    H_array: ArrayLike,
+    equalizer: ArrayLike,
+    grid_dirs_az_el_rad: ArrayLike,
+    *,
+    max_order: int,
+) -> dict:
+    """Report numerical health metrics for a measured-array encoder.
+
+    Parameters
+    ----------
+    H_array : array_like, shape ``(F, M, G)``
+        Measured array steering matrix.
+    equalizer : array_like, shape ``(F, Q, M)``
+        Encoding matrix, typically from :func:`measured_array_equalizer`.
+    grid_dirs_az_el_rad : array_like, shape ``(G, 2)``
+        Measurement directions as azimuth/elevation in radians.
+    max_order : int
+        Target SH order ``N``.
+
+    Returns
+    -------
+    dict
+        Machine-readable diagnostics: steering-matrix condition
+        numbers, per-bin reconstruction error against the target SH
+        basis, white-noise-gain range, and maximum filter gain.
+    """
+    H = np.asarray(H_array, dtype=np.complex128)
+    E = np.asarray(equalizer, dtype=np.complex128)
+    dirs = np.asarray(grid_dirs_az_el_rad, dtype=float)
+    if H.ndim != 3:
+        raise ValueError("H_array must have shape (F, M, G)")
+    if E.ndim != 3:
+        raise ValueError("equalizer must have shape (F, Q, M)")
+    if dirs.ndim != 2 or dirs.shape[1] != 2:
+        raise ValueError("grid_dirs_az_el_rad must have shape (G, 2)")
+    if H.shape[0] != E.shape[0]:
+        raise ValueError("H_array and equalizer must have the same frequency count")
+    if H.shape[1] != E.shape[2]:
+        raise ValueError("microphone count mismatch between H_array and equalizer")
+    expected_q = (int(max_order) + 1) ** 2
+    if E.shape[1] != expected_q:
+        raise ValueError(
+            f"equalizer has {E.shape[1]} SH channels; expected {expected_q}"
+        )
+    if H.shape[2] != dirs.shape[0]:
+        raise ValueError("direction count mismatch between H_array and grid_dirs")
+
+    grid = SphericalGrid(
+        azimuth=dirs[:, 0],
+        angle2=dirs[:, 1],
+        convention="az_el",
+    )
+    Y = np.asarray(
+        sh_matrix(SHBasisSpec(max_order=int(max_order), basis="real"), grid)
+    ).T  # (Q, G)
+    reconstructed = np.einsum("fqm,fmg->fqg", E, H)
+    residual = reconstructed - Y[None, :, :]
+    target_norm = np.maximum(np.linalg.norm(Y), 1e-30)
+    reconstruction_error = np.linalg.norm(residual, axis=(1, 2)) / target_norm
+
+    condition_numbers = np.empty(H.shape[0], dtype=float)
+    for f_idx in range(H.shape[0]):
+        condition_numbers[f_idx] = float(np.linalg.cond(H[f_idx]))
+    wng = 1.0 / np.maximum(np.sum(np.abs(E) ** 2, axis=2), 1e-30)
+    wng_db = 10.0 * np.log10(wng)
+    max_filter_gain_db = 20.0 * np.log10(
+        np.maximum(np.max(np.abs(E), axis=(1, 2)), 1e-30)
+    )
+    return {
+        "n_freqs": int(H.shape[0]),
+        "n_mics": int(H.shape[1]),
+        "n_directions": int(H.shape[2]),
+        "n_coeffs": int(E.shape[1]),
+        "max_order": int(max_order),
+        "condition_numbers": condition_numbers,
+        "condition_number_max": float(np.max(condition_numbers)),
+        "condition_number_median": float(np.median(condition_numbers)),
+        "reconstruction_error": reconstruction_error,
+        "reconstruction_error_mean": float(np.mean(reconstruction_error)),
+        "reconstruction_error_max": float(np.max(reconstruction_error)),
+        "white_noise_gain_db": wng_db,
+        "white_noise_gain_db_min": float(np.min(wng_db)),
+        "white_noise_gain_db_max": float(np.max(wng_db)),
+        "max_filter_gain_db": max_filter_gain_db,
+        "max_filter_gain_db_max": float(np.max(max_filter_gain_db)),
+    }
+
+
 __all__ = [
     "apply_measured_equalizer",
+    "measured_array_diagnostics",
     "measured_array_equalizer",
 ]

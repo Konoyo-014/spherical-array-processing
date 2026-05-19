@@ -32,6 +32,7 @@ include tests/test_ambi_encoder.py
 include tests/test_ambi_format.py
 include tests/test_ambi_intensity.py
 include tests/test_ambi_io.py
+include tests/test_ambi_spec.py
 include tests/test_ambi_to_binaural.py
 include tests/test_ambi_translation.py
 include tests/test_ambi_uhj.py

@@ -29,7 +29,7 @@ class TestPackageSmoke:
         import spherical_array_processing as sap
 
         assert hasattr(sap, "__version__")
-        assert sap.__version__ == "0.4.0"
+        assert sap.__version__ == "0.5.0"
 
     def test_types_importable(self):
         from spherical_array_processing.types import (

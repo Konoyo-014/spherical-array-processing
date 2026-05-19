@@ -15,8 +15,9 @@ from ..sh import matrix as sh_matrix
 from ..types import SHBasisSpec, SphericalGrid
 
 
-DecoderMethod = Literal["sad", "mmd", "epad", "allrad"]
+DecoderMethod = Literal["sad", "mmd", "mad", "mode_matching", "epad", "allrad"]
 BasisKind = Literal["real", "complex"]
+DecoderTaper = Literal["none", "max_re", "in_phase"]
 
 
 def max_re_sh_weights(max_order: int) -> NDArray[np.float64]:
@@ -45,6 +46,79 @@ def max_re_sh_weights(max_order: int) -> NDArray[np.float64]:
     return per_coeff
 
 
+def in_phase_sh_weights(max_order: int) -> NDArray[np.float64]:
+    """Per-SH-coefficient in-phase decoder taper.
+
+    The per-order weight is
+
+    ``g_n = N! (N + 1)! / ((N + n + 1)! (N - n)!)``.
+
+    It is replicated over all ``2n + 1`` coefficients of order ``n``.
+    The taper is stronger than max-rE and trades spatial sharpness for
+    strictly same-sign axisymmetric decoder lobes.
+    """
+    import math
+
+    N = int(max_order)
+    if N < 0:
+        raise ValueError("max_order must be non-negative")
+    weights = []
+    numerator = math.factorial(N) * math.factorial(N + 1)
+    for n in range(N + 1):
+        denom = math.factorial(N + n + 1) * math.factorial(N - n)
+        weights.extend([numerator / denom] * (2 * n + 1))
+    return np.asarray(weights, dtype=float)
+
+
+def decoder_taper_weights(
+    max_order: int,
+    taper: DecoderTaper = "none",
+) -> NDArray[np.float64]:
+    """Return a named Ambisonic decoder taper in ACN coefficient order."""
+    if taper == "none":
+        return np.ones((int(max_order) + 1) ** 2, dtype=float)
+    if taper == "max_re":
+        return max_re_sh_weights(int(max_order))
+    if taper == "in_phase":
+        return in_phase_sh_weights(int(max_order))
+    raise ValueError("taper must be 'none', 'max_re', or 'in_phase'")
+
+
+def apply_decoder_taper(
+    decoder: ArrayLike,
+    max_order: int,
+    taper: DecoderTaper = "none",
+    *,
+    rms_preserving: bool = False,
+) -> NDArray[np.floating]:
+    """Apply a named per-order taper to decoder columns.
+
+    Parameters
+    ----------
+    decoder : array_like, shape ``(L, (N+1)^2)``
+        Decoder matrix.
+    max_order : int
+        Ambisonic order ``N``.
+    taper : {"none", "max_re", "in_phase"}, optional
+        Per-order weighting policy.
+    rms_preserving : bool, optional
+        If true, scale the tapered decoder so the average coefficient
+        energy under a full-band unit prior matches the untapered
+        decoder.  This is useful for high-frequency dual-band decoders.
+    """
+    d = np.asarray(decoder)
+    weights = decoder_taper_weights(int(max_order), taper)
+    if d.ndim != 2 or d.shape[1] != weights.size:
+        raise ValueError(
+            f"decoder must have shape (L, {weights.size}) for max_order={max_order}"
+        )
+    if rms_preserving and taper != "none":
+        denom = float(np.mean(weights ** 2))
+        if denom > 0:
+            weights = weights / np.sqrt(denom)
+    return d * weights[None, :]
+
+
 # --------------------------------------------------------------------------- #
 # Loudspeaker-side utilities                                                  #
 # --------------------------------------------------------------------------- #
@@ -60,6 +134,93 @@ def _speaker_sh(
         angle_convention=spk.convention,
     )
     return np.asarray(sh_matrix(spec, spk))
+
+
+def layout_from_directions(
+    directions_rad: ArrayLike | SphericalGrid,
+    *,
+    convention: Literal["az_el", "az_colat"] = "az_el",
+    weights: ArrayLike | None = None,
+) -> SphericalGrid:
+    """Create a loudspeaker grid from ``(azimuth, elevation/colatitude)`` rows."""
+    if isinstance(directions_rad, SphericalGrid):
+        if weights is None:
+            return directions_rad
+        return SphericalGrid(
+            azimuth=directions_rad.azimuth,
+            angle2=directions_rad.angle2,
+            convention=directions_rad.convention,
+            weights=np.asarray(weights, dtype=float).reshape(-1),
+        )
+    dirs = np.asarray(directions_rad, dtype=float)
+    if dirs.ndim != 2 or dirs.shape[1] != 2:
+        raise ValueError("directions_rad must have shape (n_speakers, 2)")
+    w = None if weights is None else np.asarray(weights, dtype=float).reshape(-1)
+    return SphericalGrid(
+        azimuth=dirs[:, 0],
+        angle2=dirs[:, 1],
+        weights=w,
+        convention=convention,
+    )
+
+
+def layout_from_directions_deg(
+    directions_deg: ArrayLike,
+    *,
+    convention: Literal["az_el", "az_colat"] = "az_el",
+    weights: ArrayLike | None = None,
+) -> SphericalGrid:
+    """Create a loudspeaker grid from degree-valued direction rows."""
+    return layout_from_directions(
+        np.deg2rad(np.asarray(directions_deg, dtype=float)),
+        convention=convention,
+        weights=weights,
+    )
+
+
+def layout_t_design(order: int, n_points: int | None = None) -> SphericalGrid:
+    """Return an equal-weight synthetic t-design fallback layout."""
+    return get_tdesign_fallback(max(1, int(order)), n_points=n_points)
+
+
+def layout_itu_5_1() -> SphericalGrid:
+    """Return an ITU-style 5.0 horizontal layout without the LFE channel."""
+    return layout_from_directions_deg(
+        np.array(
+            [
+                [30.0, 0.0],
+                [-30.0, 0.0],
+                [0.0, 0.0],
+                [110.0, 0.0],
+                [-110.0, 0.0],
+            ],
+            dtype=float,
+        ),
+        convention="az_el",
+    )
+
+
+def layout_itu_7_1_4() -> SphericalGrid:
+    """Return an 11-channel 7.0.4 layout without the LFE channel."""
+    return layout_from_directions_deg(
+        np.array(
+            [
+                [30.0, 0.0],
+                [-30.0, 0.0],
+                [0.0, 0.0],
+                [90.0, 0.0],
+                [-90.0, 0.0],
+                [150.0, 0.0],
+                [-150.0, 0.0],
+                [45.0, 45.0],
+                [-45.0, 45.0],
+                [135.0, 45.0],
+                [-135.0, 45.0],
+            ],
+            dtype=float,
+        ),
+        convention="az_el",
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -626,7 +787,7 @@ def decoder_matrix(
     """
     if method == "sad":
         return sad_decoder(loudspeaker_grid, max_order, basis=basis)
-    if method == "mmd":
+    if method in ("mmd", "mad", "mode_matching"):
         return mmd_decoder(loudspeaker_grid, max_order, basis=basis, **kwargs)
     if method == "epad":
         return epad_decoder(loudspeaker_grid, max_order, basis=basis)
@@ -708,6 +869,175 @@ def dual_band_decoder_matrix(
         energy_scale = 1.0
     d_hf = d_lf * (energy_scale * taper)[None, :]
     return d_lf, d_hf
+
+
+def frequency_dependent_decoder_matrix(
+    loudspeaker_grid: SphericalGrid,
+    max_order: int,
+    freqs_hz: ArrayLike,
+    *,
+    method: DecoderMethod = "allrad",
+    basis: BasisKind = "real",
+    low_taper: DecoderTaper = "none",
+    high_taper: DecoderTaper = "max_re",
+    crossover_hz: float = 700.0,
+    crossover_order: int = 4,
+    rms_preserving: bool = True,
+    **kwargs,
+) -> NDArray[np.floating]:
+    """Construct a smooth frequency-dependent decoder bank.
+
+    Returns ``D[f]`` with shape ``(F, L, Q)`` by crossfading between a
+    low-frequency taper and a high-frequency taper.  The default is the
+    classic Gerzon/Daniel velocity-to-energy transition: no LF taper
+    and max-rE HF taper around 700 Hz.
+    """
+    f = np.asarray(freqs_hz, dtype=float).reshape(-1)
+    if f.size == 0:
+        raise ValueError("freqs_hz must contain at least one frequency")
+    if float(crossover_hz) <= 0.0:
+        raise ValueError("crossover_hz must be positive")
+    if int(crossover_order) <= 0:
+        raise ValueError("crossover_order must be positive")
+    base = decoder_matrix(
+        loudspeaker_grid,
+        max_order,
+        method=method,
+        basis=basis,
+        **kwargs,
+    )
+    d_low = apply_decoder_taper(
+        base,
+        max_order,
+        low_taper,
+        rms_preserving=False,
+    )
+    d_high = apply_decoder_taper(
+        base,
+        max_order,
+        high_taper,
+        rms_preserving=bool(rms_preserving),
+    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ratio = np.where(f > 0, (f / float(crossover_hz)) ** int(crossover_order), 0.0)
+    alpha = 1.0 / (1.0 + ratio)
+    g_low = np.sqrt(alpha).reshape(-1, 1, 1)
+    g_high = np.sqrt(1.0 - alpha).reshape(-1, 1, 1)
+    return g_low * d_low[None, :, :] + g_high * d_high[None, :, :]
+
+
+def decoder_diagnostics(
+    decoder: ArrayLike,
+    loudspeaker_grid: SphericalGrid,
+    *,
+    max_order: int | None = None,
+    basis: BasisKind = "real",
+    n_probe_points: int = 512,
+) -> dict:
+    """Compute loudspeaker-decoder health metrics.
+
+    The report is intentionally numeric and machine-readable.  It
+    includes matrix rank/conditioning, per-speaker diffuse-level error,
+    layout gap statistics, and probe-grid velocity / energy vector
+    behaviour.  It is meant as a pre-flight check before publishing a
+    layout-specific decoder.
+    """
+    d = np.asarray(decoder)
+    if d.ndim != 2:
+        raise ValueError("decoder must be a 2-D matrix")
+    q = d.shape[1]
+    if max_order is None:
+        root = int(round(np.sqrt(q)))
+        if root * root != q:
+            raise ValueError(
+                "max_order is required when decoder column count is not a square"
+            )
+        max_order = root - 1
+    expected_q = (int(max_order) + 1) ** 2
+    if q != expected_q:
+        raise ValueError(
+            f"decoder has {q} columns but max_order={max_order} expects {expected_q}"
+        )
+    if d.shape[0] != loudspeaker_grid.size:
+        raise ValueError(
+            "decoder row count must match loudspeaker_grid.size"
+        )
+
+    spk_xyz = unit_sph_to_cart(
+        loudspeaker_grid.azimuth,
+        loudspeaker_grid.angle2,
+        convention=loudspeaker_grid.convention,
+    )
+    singular_values = np.linalg.svd(d, compute_uv=False)
+    if singular_values.size == 0 or singular_values[-1] <= 0:
+        condition = np.inf
+    else:
+        condition = float(singular_values[0] / singular_values[-1])
+    speaker_power = np.sum(np.abs(d) ** 2, axis=1)
+    mean_power = float(np.mean(speaker_power))
+    diffuse_level_error_db = 10.0 * np.log10(
+        np.maximum(speaker_power, 1e-30) / max(mean_power, 1e-30)
+    )
+
+    probe = get_tdesign_fallback(
+        2 * int(max_order) + 2,
+        n_points=max(int(n_probe_points), 4 * expected_q, 32),
+    )
+    y_probe = np.asarray(
+        sh_matrix(
+            SHBasisSpec(
+                max_order=int(max_order),
+                basis=basis,
+                angle_convention=probe.convention,
+            ),
+            probe,
+        )
+    )
+    speaker_signals = y_probe @ d.T
+    amp = np.real(speaker_signals)
+    power = np.abs(speaker_signals) ** 2
+    energy = np.sum(power, axis=1)
+    energy_vec = (power @ spk_xyz) / np.maximum(energy[:, None], 1e-30)
+    velocity_denom = np.sum(np.abs(amp), axis=1)
+    velocity_vec = (amp @ spk_xyz) / np.maximum(velocity_denom[:, None], 1e-30)
+    target_xyz = unit_sph_to_cart(
+        probe.azimuth,
+        probe.angle2,
+        convention=probe.convention,
+    )
+
+    def _angle_errors(vec: NDArray[np.float64]) -> NDArray[np.float64]:
+        norm = np.linalg.norm(vec, axis=1)
+        dots = np.sum(vec * target_xyz, axis=1) / np.maximum(norm, 1e-30)
+        err = np.degrees(np.arccos(np.clip(dots, -1.0, 1.0)))
+        return np.where(norm > 1e-12, err, np.nan)
+
+    e_err = _angle_errors(energy_vec)
+    v_err = _angle_errors(velocity_vec)
+    return {
+        "n_speakers": int(d.shape[0]),
+        "n_coeffs": int(q),
+        "max_order": int(max_order),
+        "rank": int(np.linalg.matrix_rank(d)),
+        "condition_number": condition,
+        "singular_values": singular_values,
+        "diffuse_level_error_db": diffuse_level_error_db,
+        "diffuse_level_error_db_max_abs": float(np.max(np.abs(diffuse_level_error_db))),
+        "layout_coverage": check_layout_coverage(
+            loudspeaker_grid,
+            n_probe_points=max(int(n_probe_points), 32),
+        ),
+        "energy_mean": float(np.mean(energy)),
+        "energy_min": float(np.min(energy)),
+        "energy_max": float(np.max(energy)),
+        "energy_vector_magnitude_mean": float(np.mean(np.linalg.norm(energy_vec, axis=1))),
+        "energy_vector_angle_error_deg_mean": float(np.nanmean(e_err)),
+        "energy_vector_angle_error_deg_max": float(np.nanmax(e_err)),
+        "velocity_vector_magnitude_mean": float(np.mean(np.linalg.norm(velocity_vec, axis=1))),
+        "velocity_vector_angle_error_deg_mean": float(np.nanmean(v_err)),
+        "velocity_vector_angle_error_deg_max": float(np.nanmax(v_err)),
+        "n_probe_points": int(probe.size),
+    }
 
 
 def apply_dual_band_decoder(

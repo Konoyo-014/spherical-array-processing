@@ -2,6 +2,44 @@
 
 All notable changes to `spherical-array-processing` are documented here.
 
+## [0.5.0] - 2026-05-19
+
+### Added
+
+- Added `ambi.AmbisonicSpec` and `ambi.AmbisonicFrame` as typed
+  Ambisonics containers for order, basis, normalization, domain,
+  sample-rate, frequency-axis, channel-axis, and mixed-order-mask
+  metadata.
+- Added `ambi.channel_count`, `ambi.infer_order`, and
+  `ambi.encode_plane_wave_frame` so low-level source encoding can be
+  used in a metadata-preserving workflow.
+- Added decoder layout helpers: `decoding.layout_from_directions`,
+  `decoding.layout_from_directions_deg`, `decoding.layout_t_design`,
+  `decoding.layout_itu_5_1`, and `decoding.layout_itu_7_1_4`.
+- Added decoder taper utilities: `decoding.decoder_taper_weights`,
+  `decoding.apply_decoder_taper`, and `decoding.in_phase_sh_weights`.
+  `decoding.decoder_matrix(..., method="mad")` is now accepted as an
+  explicit alias of the existing MMD / mode-matching decoder.
+- Added `decoding.frequency_dependent_decoder_matrix`, which returns a
+  smooth frequency-indexed decoder bank between named low- and
+  high-frequency taper policies.
+- Added `decoding.decoder_diagnostics`, a machine-readable report for
+  decoder rank, conditioning, diffuse-level error, layout coverage, and
+  velocity / energy-vector behavior on a probe grid.
+- Added `encoding.measured_array_diagnostics`, which reports steering
+  matrix condition numbers, measured-encoder reconstruction residuals,
+  white-noise-gain ranges, and maximum filter gain.
+- Added `docs/v0_5_0_ambisonics_release_plan.md` documenting the 0.5.0
+  release boundary and the GitHub/PyPI synchronization requirement.
+
+### Changed
+
+- Promoted the package version to `0.5.0` in both `pyproject.toml` and
+  `spherical_array_processing.__version__`.
+- Updated README and Ambisonics codec documentation to describe the
+  0.5.0 typed-container, decoder-diagnostics, frequency-dependent
+  decoder, and measured-array-diagnostics APIs.
+
 ## [0.4.0] - 2026-05-10
 
 ### Changed

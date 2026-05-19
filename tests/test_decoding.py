@@ -13,8 +13,17 @@ from spherical_array_processing.array import (
 from spherical_array_processing.decoding import (
     allrad_decoder,
     apply_decoder,
+    apply_decoder_taper,
     decoder_matrix,
+    decoder_diagnostics,
+    decoder_taper_weights,
     epad_decoder,
+    frequency_dependent_decoder_matrix,
+    in_phase_sh_weights,
+    layout_from_directions_deg,
+    layout_itu_5_1,
+    layout_itu_7_1_4,
+    layout_t_design,
     mmd_decoder,
     sad_decoder,
     vbap_gains,
@@ -204,6 +213,38 @@ class TestApplyDecoder:
         with pytest.raises(ValueError, match="method"):
             decoder_matrix(spk, 2, method="bogus")  # type: ignore[arg-type]
 
+    def test_mad_alias_matches_mmd(self):
+        spk = fibonacci_grid(16)
+        d_mmd = decoder_matrix(spk, 2, method="mmd")
+        d_mad = decoder_matrix(spk, 2, method="mad")
+        assert_allclose(d_mad, d_mmd, atol=0)
+
+
+class TestLayoutPresetsAndDiagnostics:
+    def test_layout_helpers_return_spherical_grids(self):
+        assert layout_from_directions_deg([[0.0, 0.0], [90.0, 0.0]]).size == 2
+        assert layout_t_design(3).size >= 32
+        assert layout_itu_5_1().size == 5
+        assert layout_itu_7_1_4().size == 11
+
+    def test_decoder_diagnostics_report_core_metrics(self):
+        spk = fibonacci_grid(32)
+        d = decoder_matrix(spk, 2, method="allrad")
+        report = decoder_diagnostics(d, spk, n_probe_points=96)
+        assert report["n_speakers"] == spk.size
+        assert report["n_coeffs"] == 9
+        assert report["max_order"] == 2
+        assert report["rank"] > 0
+        assert np.isfinite(report["condition_number"])
+        assert report["diffuse_level_error_db"].shape == (spk.size,)
+        assert report["layout_coverage"]["max_gap_deg"] > 0.0
+        assert 0.0 <= report["energy_vector_magnitude_mean"] <= 1.0
+
+    def test_decoder_diagnostics_validates_shapes(self):
+        spk = fibonacci_grid(10)
+        with pytest.raises(ValueError, match="row count"):
+            decoder_diagnostics(np.zeros((9, 9)), spk, max_order=2)
+
 
 # --------------------------------------------------------------------------- #
 # Edge cases surfaced by release validation.
@@ -364,6 +405,39 @@ class TestDualBandDecoder:
             # Monotone decrease from order 0 (= 1) outwards.
             assert per_order[0] == 1.0
             assert np.all(np.diff(per_order) < 0.0)
+
+    def test_in_phase_weights_are_stronger_than_max_re(self):
+        for N in (1, 3, 5):
+            maxre = decoder_taper_weights(N, "max_re")
+            inphase = in_phase_sh_weights(N)
+            assert inphase[0] == 1.0
+            assert np.all(inphase > 0.0)
+            assert np.all(inphase <= maxre + 1e-12)
+
+    def test_apply_decoder_taper_in_phase(self):
+        spk = fibonacci_grid(12)
+        d = decoder_matrix(spk, 2, method="sad")
+        tapered = apply_decoder_taper(d, 2, "in_phase")
+        assert tapered.shape == d.shape
+        assert_allclose(tapered[:, 0], d[:, 0], atol=0)
+        assert np.linalg.norm(tapered[:, -1]) < np.linalg.norm(d[:, -1])
+
+    def test_frequency_dependent_decoder_matrix_edges(self):
+        spk = fibonacci_grid(16)
+        freqs = np.array([0.0, 700.0 * 100.0])
+        bank = frequency_dependent_decoder_matrix(
+            spk,
+            2,
+            freqs,
+            method="sad",
+            high_taper="in_phase",
+            rms_preserving=False,
+        )
+        base = decoder_matrix(spk, 2, method="sad")
+        high = apply_decoder_taper(base, 2, "in_phase", rms_preserving=False)
+        assert bank.shape == (2, spk.size, 9)
+        assert_allclose(bank[0], base, atol=1e-12)
+        assert_allclose(bank[1], high, atol=5e-4, rtol=5e-3)
 
     def test_hf_decoder_preserves_average_energy(self):
         """Under a uniform-direction prior, applying the HF decoder

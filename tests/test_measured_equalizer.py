@@ -10,6 +10,7 @@ from spherical_array_processing.acoustics.radial import bn_matrix
 from spherical_array_processing.array import fibonacci_grid
 from spherical_array_processing.encoding import (
     apply_measured_equalizer,
+    measured_array_diagnostics,
     measured_array_equalizer,
 )
 from spherical_array_processing.sh import matrix as sh_matrix
@@ -114,6 +115,32 @@ class TestMeasuredEqualizer:
             measured_array_equalizer(
                 H, dirs, max_order=1, n_fft=128, method="bogus",
             )
+
+    def test_measured_array_diagnostics(self):
+        H, dirs, _, _ = _make_ideal_rigid_array(
+            max_array_order=4, n_mics=24, n_grid=96, n_fft=128, fs=48000,
+            radius_m=0.042,
+        )
+        H_filt = measured_array_equalizer(H, dirs, max_order=2, n_fft=128)
+        report = measured_array_diagnostics(H, H_filt, dirs, max_order=2)
+        assert report["n_freqs"] == H.shape[0]
+        assert report["n_mics"] == H.shape[1]
+        assert report["n_directions"] == H.shape[2]
+        assert report["n_coeffs"] == 9
+        assert report["condition_numbers"].shape == (H.shape[0],)
+        assert report["reconstruction_error"].shape == (H.shape[0],)
+        assert report["white_noise_gain_db"].shape == (H.shape[0], 9)
+        assert np.isfinite(report["condition_number_median"])
+        assert np.isfinite(report["white_noise_gain_db_min"])
+
+    def test_measured_array_diagnostics_validates_shape(self):
+        H, dirs, _, _ = _make_ideal_rigid_array(
+            max_array_order=2, n_mics=16, n_grid=32, n_fft=128, fs=48000,
+            radius_m=0.042,
+        )
+        H_filt = measured_array_equalizer(H, dirs, max_order=1, n_fft=128)
+        with pytest.raises(ValueError, match="same frequency count"):
+            measured_array_diagnostics(H[:-1], H_filt, dirs, max_order=1)
 
 
 class TestApplyMeasuredEqualizer:

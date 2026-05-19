@@ -22,7 +22,11 @@ encoding matrix ``(F, Q, M)`` via regularized least-squares; apply it
 with :func:`apply_measured_equalizer`.
 """
 
-from .measured_filters import apply_measured_equalizer, measured_array_equalizer
+from .measured_filters import (
+    apply_measured_equalizer,
+    measured_array_diagnostics,
+    measured_array_equalizer,
+)
 from .radial_filters import (
     apply_radial_equalizer,
     radial_equalizer,
@@ -33,6 +37,7 @@ from .radial_filters import (
 __all__ = [
     "apply_measured_equalizer",
     "apply_radial_equalizer",
+    "measured_array_diagnostics",
     "measured_array_equalizer",
     "radial_equalizer",
     "radial_equalizer_tikhonov",

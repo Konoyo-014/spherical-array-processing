@@ -22,7 +22,7 @@ Higher-order FuMa is not standardised; those entry points raise
 ``ValueError`` past order 3.
 """
 
-from .encoder import encode_plane_wave
+from .encoder import encode_plane_wave, encode_plane_wave_frame
 from .format import (
     acn_to_fuma,
     convert_ambi_normalization,
@@ -31,15 +31,21 @@ from .format import (
 from .intensity import doa_from_intensity, intensity_vector
 from .io import read_ambix_wav, write_ambix_wav
 from .nfc import nfc_hoa_distance_filter
+from .spec import AmbisonicFrame, AmbisonicSpec, channel_count, infer_order
 from .translation import translate_foa
 from .uhj import uhj_decode, uhj_encode
 
 __all__ = [
     "acn_to_fuma",
+    "AmbisonicFrame",
+    "AmbisonicSpec",
+    "channel_count",
     "convert_ambi_normalization",
     "doa_from_intensity",
     "encode_plane_wave",
+    "encode_plane_wave_frame",
     "fuma_to_acn",
+    "infer_order",
     "intensity_vector",
     "nfc_hoa_distance_filter",
     "read_ambix_wav",
