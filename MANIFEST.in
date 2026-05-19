@@ -40,6 +40,16 @@ include tests/test_ambi_spec.py
 include tests/test_ambi_to_binaural.py
 include tests/test_ambi_translation.py
 include tests/test_ambi_uhj.py
+include tests/test_acoustics_standards.py
+include tests/test_ambi_channels.py
+include tests/test_ambi_processing.py
+include tests/test_array_diagnostics.py
+include tests/test_calibration.py
+include tests/test_decoding_diagnostics.py
+include tests/test_interop.py
+include tests/test_layouts.py
+include tests/test_measurement.py
+include tests/test_metrics.py
 include tests/test_independent_audit.py
 include tests/test_measured_equalizer.py
 include tests/test_nfc_hoa.py
@@ -52,6 +62,7 @@ include tests/test_rigid_sphere_hrtf.py
 include tests/test_room.py
 include tests/test_room_banded.py
 include tests/test_room_fdn.py
+include tests/test_room_design.py
 include tests/test_room_metrics.py
 include tests/test_room_reverb.py
 include tests/test_room_statistical.py

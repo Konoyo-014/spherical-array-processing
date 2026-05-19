@@ -2,6 +2,74 @@
 
 All notable changes to `spherical-array-processing` are documented here.
 
+## [0.6.0] - 2026-05-19
+
+### Added
+
+- Added a broad Ambisonics channel-processing layer: ACN/FuMa
+  permutation helpers, channel-label parsing, degree/order/channel
+  masks and indices, mixed-order utilities, channel selection/drop/zero
+  helpers, channel energy/RMS/peak metrics, active-channel detection,
+  per-order peak/energy fractions, and JSON-friendly channel metadata.
+- Added Ambisonic signal-processing helpers for channel-axis validation,
+  order truncation/padding, per-channel and per-order gains, W-channel
+  extraction, peak/RMS normalization, channel covariance/correlation,
+  and frame mixing/crossfading.
+- Added decoder diagnostics beyond the earlier aggregate
+  `decoder_diagnostics`: singular values, rank, condition number,
+  row/column power, diffuse speaker levels, energy-preservation error,
+  mode-leakage ratio, mode-matching response/error, row/column
+  correlations, probe response energy, peak-speaker assignment,
+  energy-vector and velocity-vector metrics, decoder normalization
+  helpers, and compact `decoder_health_report`.
+- Added classical acoustics utilities for SPL/SIL/PWL conversion,
+  free-field distance ratios, plane-wave impedance relations,
+  wavelength/period/angular-frequency conversions, phase/delay wrapping,
+  sine RMS/peak relations, crest factor, fractional-octave bands,
+  A/C/Z weighting, Mel/ERB/Bark scales, phon/sone conversion,
+  semitone/cents intervals, band-edge/Q conversion, absorption and
+  reflection loss, Doppler shifts, Mach number, and RPM/Hz conversion.
+- Added measured-array containers and diagnostics under `measurement`,
+  including transfer-function magnitude/phase/group-delay helpers,
+  normalization policies, capsule gain/phase mismatch reports,
+  steering-matrix ranks/condition numbers, measurement summaries, and
+  regularized inverse-bank construction/application.
+- Added `calibration` helpers for fitted spherical arrays, rigid
+  Kabsch alignment, point alignment, position-error reports,
+  pairwise-distance error, and `ArrayGeometry` construction from
+  measured sensor positions.
+- Added `layouts` as a stable loudspeaker-layout module with stereo,
+  ITU bed/height, horizontal ring, tetrahedral/octahedral/cube presets,
+  layout transforms, subset/mirroring/rotation helpers, spacing
+  diagnostics, and a layout registry.
+- Added cross-module `metrics` for angular localization error,
+  pairwise angular distances, assignment error, energy/velocity
+  vectors, spectral distortion, phase error, relative error, and
+  scale-invariant error.
+- Added `interop` JSON helpers for spherical grids, SH basis specs,
+  array geometries, loudspeaker layouts, measured transfer functions,
+  complex arrays, and known-object read/write dispatch.
+- Added room-design helpers for Schroeder/critical-distance summaries,
+  modal-density estimates, reflection-loss conversion, absorption-table
+  expansion, and compact room-design reports.
+- Added a fivefold expansion audit document for 0.6.0 documenting the
+  original-package baseline, the current API counts, the literature and
+  ecosystem targets, and the validation boundary.
+
+### Changed
+
+- Promoted the package version to `0.6.0` because PyPI version `0.5.0`
+  is immutable and the fivefold expansion target required a corrective
+  public release rather than an in-place replacement.
+- Updated README and source-distribution manifest entries for the new
+  Ambisonics, acoustics, measurement, calibration, layout, metrics,
+  room-design, decoder-diagnostics, and interop test coverage.
+- The stable public surface now exceeds the original local package by
+  the audited fivefold threshold under all release-facing count metrics:
+  481 stable top-level implementation definitions versus 95 in the
+  original package, 503 when public dataclass methods are included
+  versus 100, and 587 public exported module names versus 89.
+
 ## [0.5.0] - 2026-05-19
 
 ### Added

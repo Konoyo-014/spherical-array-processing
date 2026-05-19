@@ -9,13 +9,22 @@ from numpy.testing import assert_allclose
 from spherical_array_processing.room import (
     RIRMetrics,
     ShoeboxRoom,
+    banded_rir_metrics,
+    center_time,
     clarity,
     definition,
+    direct_to_reverberant_ratio,
     early_decay_time,
+    early_late_energy,
     energy_decay_curve,
+    interaural_cross_correlation,
+    lateral_energy_fraction,
     reverberation_time,
+    reverberation_times,
     rir_metrics,
     shoebox_rir,
+    strength,
+    total_energy,
 )
 
 
@@ -162,3 +171,62 @@ class TestRIRMetricsBundle:
         assert_allclose(m.c80_db, clarity(h, fs, time_ms=80.0), atol=1e-12)
         assert_allclose(m.d50, definition(h, fs, time_ms=50.0), atol=1e-12)
         assert_allclose(m.edc_db, energy_decay_curve(h), atol=1e-12)
+        assert_allclose(m.ts_s, center_time(h, fs), atol=1e-12)
+        assert_allclose(m.g_db, strength(h), atol=1e-12)
+        assert_allclose(m.drr_db, direct_to_reverberant_ratio(h, fs), atol=1e-12)
+
+
+class TestExtendedISOStyleMetrics:
+    def test_energy_helpers_and_center_time(self):
+        fs = 1000.0
+        h = np.zeros(1000)
+        h[100] = 2.0
+        h[300] = 1.0
+        assert total_energy(h) == 5.0
+        assert_allclose(center_time(h, fs), (0.1 * 4.0 + 0.3 * 1.0) / 5.0)
+        early, late = early_late_energy(h, fs, time_ms=200.0)
+        assert_allclose([early, late], [4.0, 1.0])
+        assert_allclose(strength(h, reference_energy=5.0), 0.0)
+
+    def test_direct_to_reverberant_ratio(self):
+        fs = 1000.0
+        h = np.zeros(1000)
+        h[10] = 2.0
+        h[200] = 1.0
+        assert_allclose(
+            direct_to_reverberant_ratio(h, fs, direct_window_ms=3.0),
+            10.0 * np.log10(4.0),
+        )
+
+    def test_reverberation_times_and_banded_metrics(self):
+        fs = 16000.0
+        h = _make_exp_decay_rir(fs, 0.4, 5.0)
+        rts = reverberation_times(h, fs, methods=("T20", "T30"))
+        assert set(rts) == {"T20", "T30"}
+        metrics = banded_rir_metrics(np.stack([h, h]), fs)
+        assert len(metrics) == 2
+        assert all(isinstance(m, RIRMetrics) for m in metrics)
+
+    def test_interaural_cross_correlation(self):
+        fs = 48000.0
+        h = np.zeros(512)
+        h[20] = 1.0
+        assert_allclose(interaural_cross_correlation(h, h, fs), 1.0)
+        delayed = np.zeros_like(h)
+        delayed[24] = 1.0
+        assert_allclose(
+            interaural_cross_correlation(h, delayed, fs, max_lag_ms=1.0),
+            1.0,
+        )
+
+    def test_lateral_energy_fraction(self):
+        fs = 1000.0
+        omni = np.zeros(200)
+        lateral = np.zeros(200)
+        omni[0] = 1.0
+        omni[20] = 2.0
+        lateral[20] = 1.0
+        assert_allclose(
+            lateral_energy_fraction(lateral, omni, fs, early_start_ms=5.0, early_end_ms=80.0),
+            1.0 / 5.0,
+        )

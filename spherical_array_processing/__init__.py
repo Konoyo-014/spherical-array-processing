@@ -11,6 +11,9 @@ acoustics
     Radial functions, modal coefficients, Bessel/Hankel wrappers.
 array
     Spatial sampling grids, free-field and SH-domain array simulation.
+calibration
+    Geometry calibration helpers for fitted spherical arrays, rigid
+    grid alignment, sensor-position error reports, and Kabsch transforms.
 beamforming
     Fixed (cardioid, hypercardioid, Butterworth, Dolph–Chebyshev) and
     adaptive (MVDR, LCMV) beamformers.
@@ -61,6 +64,21 @@ hrtf
     ``SimpleFreeFieldHRIR`` loader (requires ``h5py``, installable as
     the ``[hrtf]`` extra) and an analytic ``rigid_sphere_hrtf``
     generator for testbed scenarios with no measured data.
+interop
+    JSON-friendly interchange helpers for spherical grids, SH basis
+    specs, array geometries, loudspeaker layouts, and measured-array
+    transfer functions.
+layouts
+    Loudspeaker layout containers, common ITU/stereo/polyhedral presets,
+    geometry conversion, hemisphere checks, and spacing diagnostics.
+measurement
+    Measured-array transfer-function containers, capsule gain/phase
+    mismatch reports, steering-matrix condition diagnostics, and
+    Tikhonov inverse-bank helpers for real spherical microphone arrays.
+metrics
+    Cross-module spatial-audio evaluation metrics: angular localization
+    error, direction assignment, energy/velocity vectors, spectral
+    distortion, phase error, and relative numerical error.
 plotting
     Visualization helpers (array geometry, spatial maps, MATLAB-style figures).
 
@@ -102,7 +120,7 @@ from __future__ import annotations
 
 from importlib import import_module
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 from .types import (
     ArrayGeometry,
@@ -120,6 +138,7 @@ _SUBMODULES = {
     "ambi",
     "array",
     "beamforming",
+    "calibration",
     "binaural",
     "coherence",
     "coords",
@@ -130,6 +149,10 @@ _SUBMODULES = {
     "doa",
     "encoding",
     "hrtf",
+    "interop",
+    "layouts",
+    "measurement",
+    "metrics",
     "plotting",
     "room",
     "sh",
@@ -154,6 +177,7 @@ __all__ = [
     "ambi",
     "array",
     "beamforming",
+    "calibration",
     "binaural",
     "coherence",
     "coords",
@@ -164,6 +188,10 @@ __all__ = [
     "doa",
     "encoding",
     "hrtf",
+    "interop",
+    "layouts",
+    "measurement",
+    "metrics",
     "plotting",
     "room",
     "sh",
